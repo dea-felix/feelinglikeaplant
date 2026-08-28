@@ -1,0 +1,976 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<!-- Teilen-Vorschau: statisch, weil WhatsApp/Signal/iMessage kein JavaScript ausführen -->
+<title>Feeling like a plant. 26. September, Amadeus, Oldenburg</title>
+<meta name="description" content="Konzerte, Ausstellung, Performance. Samstag, 26. September 2026, Amadeus, Oldenburg.">
+<meta property="og:title" content="Feeling like a plant. 26. September, Amadeus, Oldenburg">
+<meta property="og:description" content="Konzerte, Ausstellung, Performance. Samstag, 26. September 2026, Amadeus, Oldenburg.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://feelinglikeaplant.de/">
+<!-- NOCH ZU FÜLLEN: og:image, 1200 × 630 -->
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%236d9e54'/%3E%3C/svg%3E">
+
+<style>
+/* ============================================================
+   Schrift: Cooper Hewitt kommt als .woff2 nach.
+   Solange die Dateien fehlen, bleibt der Block auskommentiert
+   und der System-Fallback übernimmt.
+   Einsetzen: Dateien daneben legen, Kommentarzeichen entfernen.
+   ------------------------------------------------------------
+@font-face {
+  font-family: 'Cooper Hewitt';
+  src: url('CooperHewitt-Bold.woff2') format('woff2');
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Cooper Hewitt';
+  src: url('CooperHewitt-Medium.woff2') format('woff2');
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+   ============================================================ */
+
+:root {
+  --gruen:  #6d9e54;  /* NUR das Intro */
+  --weiss:  #ffffff;
+  --rot:    #f12530;
+  --braun:  #563814;
+  --orange: #c56012;
+  --sand:   #d2b8ab;
+  --blau:   #095392;
+  --tinte:  #ffffff;  /* Schriftfarbe der Kopfzeile, wechselt je Kapitel */
+  --schrift: 'Cooper Hewitt', system-ui, 'Helvetica Neue', Arial, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html {
+  scroll-snap-type: y proximity;
+  scroll-behavior: smooth;
+}
+body {
+  font-family: var(--schrift);
+  font-weight: 500;
+  background: var(--weiss);
+  color: var(--braun);
+  overflow-x: hidden;
+}
+
+/* ---------- Kopfzeile ---------- */
+#kopf {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+  display: flex; align-items: center; gap: 1rem;
+  padding: max(0.9rem, env(safe-area-inset-top)) 1.1rem 0.9rem;
+  color: var(--tinte);
+  transform: translateY(-110%);
+  transition: transform .45s cubic-bezier(.4,0,.2,1);
+  pointer-events: none;
+}
+#kopf.an { transform: translateY(0); pointer-events: auto; }
+#kopfWm {
+  font-weight: 700; text-transform: uppercase; letter-spacing: -0.02em;
+  font-size: 0.95rem; white-space: nowrap; visibility: hidden;
+}
+#kopf.an #kopfWm { visibility: visible; }
+#kopfNav { display: none; gap: 1.4rem; margin-left: auto; }
+#kopfNav a {
+  color: inherit; text-decoration: none; font-weight: 700;
+  font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.02em;
+}
+#kopfNav a:hover, #kopfNav a:focus-visible { text-decoration: underline; text-underline-offset: 4px; }
+.kopf-knopf {
+  background: none; border: none; color: inherit; cursor: pointer;
+  font-family: inherit; font-weight: 700; font-size: 0.85rem;
+  white-space: nowrap;
+  min-width: 44px; min-height: 44px;
+  display: inline-flex; align-items: center; justify-content: center; gap: .3rem;
+}
+#btnBurger { margin-left: auto; }
+@media (min-width: 768px) {
+  #kopfNav { display: flex; }
+  #btnBurger { display: none; }
+}
+
+/* ---------- Vollbild-Menü (Handy) ---------- */
+#menu {
+  position: fixed; inset: 0; z-index: 70;
+  background: var(--braun); color: var(--weiss);
+  display: none; flex-direction: column; justify-content: center;
+  padding: 2rem;
+}
+#menu.offen { display: flex; }
+#menu a {
+  color: inherit; text-decoration: none; font-weight: 700;
+  text-transform: uppercase; letter-spacing: -0.01em;
+  font-size: clamp(1.6rem, 7vw, 2.6rem); padding: .55rem 0;
+}
+#menuZu {
+  position: absolute; top: max(0.9rem, env(safe-area-inset-top)); right: 1.1rem;
+  color: var(--weiss);
+}
+#menuSprache { margin-top: 2rem; }
+
+/* ---------- Intro / Bühne ---------- */
+#intro { position: relative; }
+.marke { height: 100svh; scroll-snap-align: start; }
+#buehne {
+  position: sticky; top: 0; height: 100svh; overflow: hidden;
+  background: var(--gruen);
+  display: grid; place-items: center;
+}
+.satz {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  opacity: 0; padding: 0 4vw;
+}
+.satz svg { width: min(92vw, 900px); height: auto; max-height: 60svh; display: block; }
+.satz text {
+  font-family: var(--schrift); font-weight: 700;
+  letter-spacing: -0.02em; fill: var(--weiss);
+}
+#introDatum {
+  position: absolute; left: 0; right: 0;
+  bottom: max(7svh, calc(env(safe-area-inset-bottom) + 3svh));
+  text-align: center; color: var(--weiss);
+  font-weight: 700; font-size: clamp(0.85rem, 3.4vw, 1.15rem);
+  letter-spacing: 0.06em; opacity: 0;
+}
+
+/* die fliegende Wortmarke (Übergang Bühne → Kopfzeile) */
+#wmFlug {
+  position: fixed; top: 0; left: 0; z-index: 65;
+  font-weight: 700; text-transform: uppercase; letter-spacing: -0.02em;
+  font-size: 0.95rem; white-space: nowrap; color: var(--weiss);
+  transform-origin: top left; will-change: transform;
+  display: none; pointer-events: none;
+}
+
+/* ---------- Kapitel ---------- */
+.kap {
+  position: sticky; top: 0;
+  height: 100svh; overflow: hidden;
+  display: grid; place-items: center;
+  padding: max(4.5rem, env(safe-area-inset-top) + 3.5rem) 6vw
+           max(2.5rem, env(safe-area-inset-bottom) + 1.5rem);
+  /* KEIN scroll-snap-align hier: geklebte Kapitel hätten wandernde
+     Snap-Punkte, die jeden Scroll zurücksaugen. Gesnappt wird auf
+     die statischen Marken im #stapel. */
+}
+#stapel { position: relative; }
+.kmarke {
+  position: absolute; left: 0; width: 1px; height: 100svh;
+  scroll-snap-align: start; pointer-events: none;
+}
+.bg-weiss  { background: var(--weiss);  color: var(--braun); --grund: var(--weiss); }
+.bg-sand   { background: var(--sand);   color: var(--braun); --grund: var(--sand); }
+.bg-rot    { background: var(--rot);    color: var(--weiss); --grund: var(--rot); }
+.bg-blau   { background: var(--blau);   color: var(--weiss); --grund: var(--blau); }
+.bg-orange { background: var(--orange); color: var(--weiss); --grund: var(--orange); }
+.bg-braun  { background: var(--braun);  color: var(--weiss); --grund: var(--braun); }
+
+.kap-inner { width: 100%; max-width: 1100px; text-align: center; }
+
+.ueber { margin: 0 auto 1.2rem; }
+.ueber svg { width: min(90vw, 1000px); height: auto; max-height: 24svh; display: block; margin: 0 auto; }
+.ueber text { font-family: var(--schrift); font-weight: 700; letter-spacing: -0.02em; }
+
+.flz {
+  font-size: clamp(1.05rem, 2.6vw, 1.45rem);
+  line-height: 1.55; white-space: pre-line;
+  max-width: 36rem; margin: 0 auto;
+}
+.zeile { font-size: clamp(1.05rem, 2.8vw, 1.5rem); line-height: 1.7; }
+
+/* Kapitel 1: die Illustration */
+#anfang { padding: max(4.5rem, env(safe-area-inset-top) + 3.5rem) 0 0; }
+#anfang img {
+  max-height: calc(100svh - 5.5rem); max-width: 94vw;
+  width: auto; height: auto; object-fit: contain; display: block; margin: 0 auto;
+}
+
+/* Knöpfe */
+.knopf {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 48px; padding: 0.75rem 1.6rem; margin: 0.4rem;
+  font-family: inherit; font-weight: 700; font-size: 1rem;
+  text-transform: uppercase; letter-spacing: 0.02em;
+  background: none; cursor: pointer; text-decoration: none;
+  border: 2.5px solid currentColor; border-radius: 999px; color: inherit;
+}
+.knopf:hover, .knopf:focus-visible { background: currentColor; }
+.knopf:hover span, .knopf:focus-visible span { color: var(--grund, var(--weiss)); }
+.knopf span { pointer-events: none; color: inherit; }
+
+.klein { font-size: 0.85rem; opacity: 0.85; }
+.kleinlinks { margin-top: 1.6rem; }
+.kleinlinks a { color: inherit; }
+
+/* Desktop: zwei Spalten, wo es trägt */
+@media (min-width: 1200px) {
+  #wurzeln .kap-inner, #wannundwo .kap-inner {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center; gap: 3rem; text-align: left;
+  }
+  #wurzeln .ueber svg, #wannundwo .ueber svg { margin: 0; width: 100%; }
+  #wurzeln .flz { margin: 0; }
+}
+
+/* ---------- Dialoge (Impressum / Datenschutz) ---------- */
+dialog {
+  max-width: min(92vw, 640px); max-height: 84svh;
+  border: none; border-radius: 12px; padding: 2rem;
+  background: var(--weiss); color: var(--braun); --grund: var(--weiss);
+  font-family: var(--schrift);
+}
+dialog::backdrop { background: rgba(86, 56, 20, 0.55); }
+dialog h2 { font-weight: 700; text-transform: uppercase; letter-spacing: -0.01em; margin-bottom: 1rem; }
+dialog h3 { font-size: 1rem; margin: 1.2rem 0 0.3rem; }
+dialog p { font-size: 0.92rem; line-height: 1.55; margin-bottom: 0.7rem; }
+dialog .warn {
+  background: var(--sand); padding: 0.7rem 0.9rem; border-radius: 8px;
+  font-weight: 700; font-size: 0.85rem; margin-bottom: 1rem;
+}
+dialog .zu { margin-top: 1.2rem; }
+
+/* ---------- Toast ---------- */
+#toast {
+  position: fixed; left: 50%; bottom: max(2rem, env(safe-area-inset-bottom) + 1rem);
+  transform: translateX(-50%) translateY(20px); z-index: 80;
+  background: var(--braun); color: var(--weiss);
+  padding: 0.7rem 1.3rem; border-radius: 999px;
+  font-weight: 700; font-size: 0.9rem;
+  opacity: 0; transition: opacity .3s, transform .3s; pointer-events: none;
+}
+#toast.an { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ---------- Rücksicht: reduzierte Bewegung ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-snap-type: none; scroll-behavior: auto; }
+  #kopf { transition: none; }
+  .satz, #introDatum { transition: none; }
+  svg animate { display: none; }
+}
+
+/* solange ein Dialog offen ist: Snap aus, sonst springt Chrome an den Seitenanfang */
+html.kein-snap { scroll-snap-type: none; scroll-behavior: auto; }
+
+/* no-JS: das Nötigste bleibt lesbar */
+noscript .njs {
+  display: grid; place-items: center; min-height: 100svh;
+  background: var(--gruen); color: var(--weiss);
+  text-align: center; padding: 2rem; font-weight: 700;
+  font-size: clamp(1.2rem, 4vw, 2rem); text-transform: uppercase;
+}
+</style>
+</head>
+<body>
+
+<noscript>
+  <div class="njs">
+    <p>Feeling like a plant<br>Samstag, 26. September 2026<br>Einlass 17 Uhr<br>Amadeus, Mottenstraße 21, 26122 Oldenburg</p>
+  </div>
+</noscript>
+
+<!-- gemeinsamer Verzerrungs-Filter für alle Überschriften -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="warp" x="-15%" y="-60%" width="130%" height="220%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.006 0.017" numOctaves="2" seed="9" result="n">
+        <animate attributeName="baseFrequency" dur="16s"
+                 values="0.006 0.017; 0.013 0.008; 0.005 0.02; 0.006 0.017"
+                 repeatCount="indefinite"/>
+      </feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="11" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
+<header id="kopf">
+  <span id="kopfWm" aria-label="Feeling like a plant">Feeling like a plant</span>
+  <nav id="kopfNav" aria-label="Kapitel">
+    <a href="#anfang"    data-t="navAnfang"></a>
+    <a href="#wurzeln"   data-t="navWurzeln"></a>
+    <a href="#programm"  data-t="navProgramm"></a>
+    <a href="#hoeren"    data-t="navHoeren"></a>
+    <a href="#wannundwo" data-t="navWannwo"></a>
+    <a href="#bisdahin"  data-t="navBisdahin"></a>
+  </nav>
+  <button class="kopf-knopf" id="btnTeilenKopf" data-alabel="teilenLabel">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 3v13M7 8l5-5 5 5M5 14v6h14v-6"/>
+    </svg>
+  </button>
+  <button class="kopf-knopf" id="btnSprache">DE / EN</button>
+  <button class="kopf-knopf" id="btnBurger" data-alabel="menueLabel">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true">
+      <path d="M3 6h18M3 12h18M3 18h18"/>
+    </svg>
+  </button>
+</header>
+
+<div id="menu">
+  <button class="kopf-knopf" id="menuZu" aria-label="Menü schließen">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true">
+      <path d="M5 5l14 14M19 5L5 19"/>
+    </svg>
+  </button>
+  <a href="#anfang"    data-t="navAnfang"></a>
+  <a href="#wurzeln"   data-t="navWurzeln"></a>
+  <a href="#programm"  data-t="navProgramm"></a>
+  <a href="#hoeren"    data-t="navHoeren"></a>
+  <a href="#wannundwo" data-t="navWannwo"></a>
+  <a href="#bisdahin"  data-t="navBisdahin"></a>
+  <button class="kopf-knopf" id="menuSprache">DE / EN</button>
+</div>
+
+<div id="wmFlug" aria-hidden="true">Feeling like a plant</div>
+
+<main>
+  <!-- ================= Teil 1: die Bühne ================= -->
+  <div id="intro">
+    <div id="buehne" role="img" data-alabel="buehneLabel"></div>
+    <!-- Snap-Marken werden per JS erzeugt: eine pro Sprache plus eine für den Übergang -->
+  </div>
+
+  <!-- ================= Teil 2: die Kapitel ================= -->
+  <div id="stapel">
+
+  <section class="kap bg-weiss" id="anfang" data-tinte="#563814">
+    <img src="illustration.webp" width="1400" height="1839" data-aalt="illuAlt" alt="">
+  </section>
+
+  <section class="kap bg-sand" id="wurzeln" data-tinte="#563814">
+    <div class="kap-inner">
+      <div class="ueber" data-ueber="k2u"></div>
+      <p class="flz" data-t="k2text"></p>
+    </div>
+  </section>
+
+  <section class="kap bg-rot" id="programm" data-tinte="#ffffff">
+    <div class="kap-inner">
+      <div class="ueber" data-ueber="k3u"></div>
+      <p class="zeile" data-t="k3text"></p>
+      <!-- NOCH ZU FÜLLEN: das Line-up. Kommt hierhin, wenn es steht. -->
+    </div>
+  </section>
+
+  <section class="kap bg-blau" id="hoeren" data-tinte="#ffffff">
+    <div class="kap-inner">
+      <div class="ueber" data-ueber="k4u"></div>
+      <p class="zeile" data-t="k4z1"></p>
+      <p class="zeile" data-t="k4z2"></p>
+      <p style="margin-top:1.4rem">
+        <button class="knopf" id="btnTon"><span data-t="tonAn"></span></button>
+      </p>
+      <p class="klein" id="tonHinweis" hidden data-t="tonFehlt"></p>
+      <audio id="player" preload="none">
+        <source src="hoerprobe.mp3" type="audio/mpeg">
+        <!-- NOCH ZU FÜLLEN: hoerprobe.mp3 daneben legen -->
+      </audio>
+    </div>
+  </section>
+
+  <section class="kap bg-orange" id="wannundwo" data-tinte="#ffffff">
+    <div class="kap-inner">
+      <div>
+        <div class="ueber" data-ueber="k5u"></div>
+      </div>
+      <div>
+        <p class="zeile" data-t="k5z1"></p>
+        <p class="zeile" data-t="k5z2"></p>
+        <p class="zeile" data-t="k5z3"></p>
+        <p class="klein" style="margin-top:0.8rem">Mottenstraße 21, 26122 Oldenburg</p>
+        <p style="margin-top:1.2rem">
+          <a class="knopf" href="https://www.google.com/maps/search/?api=1&query=Amadeus%20Mottenstra%C3%9Fe%2021%2026122%20Oldenburg"
+             target="_blank" rel="noopener"><span data-t="anfahrt"></span></a>
+        </p>
+        <p>
+          <button class="knopf" id="btnKalender1"><span data-t="kalender"></span></button>
+          <button class="knopf" id="btnTeilen1"><span data-t="teilen"></span></button>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="kap bg-braun" id="bisdahin" data-tinte="#ffffff">
+    <div class="kap-inner">
+      <div class="ueber" data-ueber="k6u"></div>
+      <p class="zeile" data-t="k6text"></p>
+      <p style="margin-top:1.6rem">
+        <button class="knopf" id="btnKalender2"><span data-t="kalender"></span></button>
+        <button class="knopf" id="btnTeilen2"><span data-t="teilen"></span></button>
+      </p>
+      <p class="klein kleinlinks">
+        <a href="#" id="lnkImpressum" data-t="impressum"></a> ·
+        <a href="#" id="lnkDatenschutz" data-t="datenschutz"></a>
+      </p>
+    </div>
+  </section>
+
+  </div><!-- /stapel -->
+</main>
+
+<!-- ================= Impressum (ENTWURF) ================= -->
+<dialog id="dlgImpressum">
+  <h2>Impressum</h2>
+  <p class="warn">⚠️ Entwurf. Vor dem Livegang prüfen und die Platzhalter füllen. Das ist keine Rechtsberatung.</p>
+  <h3>Angaben gemäß § 5 DDG</h3>
+  <p>⟨Vor- und Nachname⟩<br>⟨Straße Hausnummer⟩<br>⟨PLZ⟩ ⟨Ort⟩</p>
+  <h3>Kontakt</h3>
+  <p>E-Mail: ⟨E-Mail-Adresse⟩</p>
+  <h3>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h3>
+  <p>⟨Vor- und Nachname⟩, Anschrift wie oben.</p>
+  <p class="zu"><button class="knopf" data-zu><span data-t="schliessen"></span></button></p>
+</dialog>
+
+<!-- ================= Datenschutz (ENTWURF) ================= -->
+<dialog id="dlgDatenschutz">
+  <h2>Datenschutz</h2>
+  <p class="warn">⚠️ Entwurf. Vor dem Livegang prüfen, Hoster eintragen. Das ist keine Rechtsberatung.</p>
+  <h3>Verantwortlicher</h3>
+  <p>Siehe Impressum.</p>
+  <h3>Hosting und Server-Logs</h3>
+  <p>Beim Aufruf dieser Seite verarbeitet der Hoster ⟨Hoster eintragen⟩ technisch notwendige
+  Daten: die IP-Adresse, den Zeitpunkt des Aufrufs und die abgerufene Datei. Diese Daten
+  liegen in Server-Protokollen und dienen allein dem sicheren Betrieb der Seite
+  (Art. 6 Abs. 1 lit. f DSGVO). Speicherdauer: ⟨beim Hoster erfragen⟩.</p>
+  <h3>Was diese Seite nicht tut</h3>
+  <p>Keine Cookies, kein Tracking, keine Analyse-Dienste, keine eingebetteten Inhalte von
+  fremden Servern. Die Sprachwahl (Deutsch oder Englisch) wird ausschließlich lokal in
+  Ihrem Browser gespeichert und nicht übertragen. Die Kalenderdatei wird vollständig in
+  Ihrem Browser erzeugt; dabei werden keine Daten übermittelt.</p>
+  <h3>Externe Links</h3>
+  <p>Der Anfahrts-Link öffnet einen Kartendienst. Ab dort gelten die Datenschutzregeln
+  des jeweiligen Anbieters.</p>
+  <h3>Ihre Rechte</h3>
+  <p>Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der
+  Verarbeitung und Widerspruch sowie das Recht auf Beschwerde bei einer
+  Aufsichtsbehörde, in Niedersachsen: Landesbeauftragte für den Datenschutz.</p>
+  <p class="zu"><button class="knopf" data-zu><span data-t="schliessen"></span></button></p>
+</dialog>
+
+<div id="toast" role="status"></div>
+
+<script>
+'use strict';
+
+/* =========================================================
+   Schalter und Daten. Alles, was Felix je ändern muss,
+   steht hier oben.
+   ========================================================= */
+
+var HOERPROBE_AKTIV = true;   // false = Kapitel „Hörprobe" samt Navigationspunkt aus
+
+/* Die Bühne. Zeilen können dazukommen oder wegfallen, sonst ändert sich nichts.
+   ⚠️ Sprachliste ist ein Vorschlag, 5 von 7 Sätzen sind noch ungeprüft.
+   outline:true = braucht SVG-Umrisse, sobald Cooper Hewitt aktiv ist
+   (die Schrift hat kein Kyrillisch; der System-Fallback hat es). */
+var BUEHNE = [
+  { lang: 'de',  text: 'SICH FÜHLEN WIE EINE PFLANZE',     sr: 'Sich fühlen wie eine Pflanze' },
+  { lang: 'nds', text: 'SIK FÖHLEN AS EN PLANT',           sr: 'Sik föhlen as en Plant' },
+  { lang: 'nl',  text: 'JE VOELEN ALS EEN PLANT',          sr: 'Je voelen als een plant' },
+  { lang: 'pl',  text: 'CZUĆ SIĘ JAK ROŚLINA',             sr: 'Czuć się jak roślina' },
+  { lang: 'tr',  text: 'KENDİNİ BİR BİTKİ GİBİ HİSSETMEK', sr: 'Kendini bir bitki gibi hissetmek' },
+  { lang: 'uk',  text: 'ПОЧУВАТИСЯ РОСЛИНОЮ',              sr: 'Почуватися рослиною', outline: true },
+  { lang: 'en',  text: 'FEELING LIKE A PLANT',             sr: 'Feeling like a plant', final: true }
+];
+
+var INTRO_DATUM = '26.09.2026 · AMADEUS OLDENBURG';
+
+/* Alle Texte der Seite. Sichtbarer Text steht NUR hier
+   (Ausnahme: die statische Teilen-Vorschau im <head> und die
+   Rechtstexte in den Dialogen, die bleiben deutsch). */
+var TEXTE = {
+  de: {
+    titel: 'Feeling like a plant. 26. September, Amadeus, Oldenburg',
+    navAnfang: 'Anfang', navWurzeln: 'Wurzeln', navProgramm: 'Programm',
+    navHoeren: 'Hören', navWannwo: 'Wann & Wo', navBisdahin: 'Bis dahin',
+    k2u: 'UNTER DER ERDE',
+    k2text: 'Pflanzen bilden Gemeinschaften. Unter der Erde sind sie verbunden und geben weiter, was sie haben.\n\nWir wollen einen Ort, an dem das auch für uns gilt.',
+    k3u: 'COMING SOON',
+    k3text: 'Konzerte, Ausstellung, Performance.',
+    k4u: 'DER SOUND DER NATUR',
+    k4z1: 'Schon mal Musik.', k4z2: 'Laut ist besser.',
+    tonAn: 'Ton an', tonAus: 'Ton aus',
+    tonFehlt: 'Die Aufnahme folgt.',
+    k5u: 'WANN UND WO',
+    k5z1: 'Samstag, 26. September 2026.', k5z2: 'Amadeus, Oldenburg.', k5z3: 'Einlass 17 Uhr.',
+    anfahrt: 'Route planen',
+    kalender: 'In den Kalender', teilen: 'Weitersagen',
+    k6u: 'BIS DAHIN',
+    k6text: 'Wasser trinken und rausgehen!',
+    impressum: 'Impressum', datenschutz: 'Datenschutz', schliessen: 'Schließen',
+    kopiert: 'Link kopiert.',
+    illuAlt: 'Gezeichneter Kopf mit geschlossenen Augen, in Blau, Grün und Ocker. Oben aus dem Schädel wächst ein Stängel mit großen grünen und braunen Blättern. Dünne wurzelartige Linien laufen nach unten weg.',
+    buehneLabel: 'Derselbe Satz in mehreren Sprachen: Sich fühlen wie eine Pflanze. Zum Weiterlesen scrollen.',
+    teilenLabel: 'Diese Seite teilen', menueLabel: 'Menü öffnen'
+  },
+  en: {
+    titel: 'Feeling like a plant. 26 September, Amadeus, Oldenburg',
+    navAnfang: 'Start', navWurzeln: 'Roots', navProgramm: 'Programme',
+    navHoeren: 'Listen', navWannwo: 'When & where', navBisdahin: 'Until then',
+    k2u: 'UNDERGROUND',
+    k2text: 'Plants live in communities. Below ground they are connected, and they pass on what they have.\n\nWe want a place where the same is true for us.',
+    k3u: 'COMING SOON',
+    k3text: 'Concerts, exhibition, performance.',
+    k4u: 'THE SOUND OF NATURE',
+    k4z1: 'Some music first.', k4z2: 'Loud is better.',
+    tonAn: 'Sound on', tonAus: 'Sound off',
+    tonFehlt: 'The recording is on its way.',
+    k5u: 'WHEN AND WHERE',
+    k5z1: 'Saturday, 26 September 2026.', k5z2: 'Amadeus, Oldenburg.', k5z3: 'Doors 5 pm.',
+    anfahrt: 'Get directions',
+    kalender: 'Add to calendar', teilen: 'Pass it on',
+    k6u: 'UNTIL THEN',
+    k6text: 'Drink water, go outside!',
+    impressum: 'Imprint', datenschutz: 'Privacy', schliessen: 'Close',
+    kopiert: 'Link copied.',
+    illuAlt: 'A drawn head with closed eyes, painted in blue, green and ochre. A stem grows out of the top of the skull, carrying large green and brown leaves. Thin root like lines run downward.',
+    buehneLabel: 'The same sentence in several languages: feeling like a plant. Scroll to continue.',
+    teilenLabel: 'Share this page', menueLabel: 'Open the menu'
+  }
+};
+
+/* Veranstaltungsdaten für die Kalenderdatei */
+var EVENT = {
+  uid: 'flp-20260926@feelinglikeaplant.de',
+  start: '20260926T170000',          // Einlass 17 Uhr
+  tz: 'Europe/Berlin',
+  titel: 'Feeling like a plant',
+  ort: 'Amadeus, Mottenstraße 21, 26122 Oldenburg',
+  url: 'https://feelinglikeaplant.de/'
+};
+
+/* =========================================================
+   Ab hier Mechanik.
+   ========================================================= */
+
+var REDUZIERT = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var $  = function (s) { return document.querySelector(s); };
+var $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
+
+var sprache = (function () {
+  try {
+    var s = localStorage.getItem('flp-lang');
+    if (s === 'de' || s === 'en') return s;
+  } catch (e) {}
+  return (navigator.language || 'de').slice(0, 2) === 'en' ? 'en' : 'de';
+})();
+
+/* ---------- Überschriften als gewellter SVG-Text ---------- */
+function baueUeberschrift(el, wort, farbe) {
+  var NS = 'http://www.w3.org/2000/svg';
+  var svg = document.createElementNS(NS, 'svg');
+  var txt = document.createElementNS(NS, 'text');
+  txt.setAttribute('font-size', '100');
+  txt.setAttribute('x', '0');
+  txt.setAttribute('y', '105');
+  txt.setAttribute('fill', farbe);
+  txt.textContent = wort;
+  if (!REDUZIERT) {
+    var g = document.createElementNS(NS, 'g');
+    g.setAttribute('filter', 'url(#warp)');
+    g.appendChild(txt);
+    svg.appendChild(g);
+  } else {
+    svg.appendChild(txt);
+  }
+  svg.setAttribute('role', 'img');
+  svg.setAttribute('aria-label', wort);
+  el.textContent = '';
+  el.appendChild(svg);
+  // Breite messen, viewBox exakt auf den Text legen -> füllt die Fläche
+  var w = 600;
+  try { w = txt.getComputedTextLength(); } catch (e) {}
+  svg.setAttribute('viewBox', '-14 -20 ' + (w + 28) + ' 170');
+}
+
+function baueAlleUeberschriften() {
+  $$('[data-ueber]').forEach(function (el) {
+    var key = el.getAttribute('data-ueber');
+    var farbe = getComputedStyle(el.closest('.kap')).color;
+    baueUeberschrift(el, TEXTE[sprache][key], farbe);
+  });
+}
+
+/* ---------- Sprache anwenden ---------- */
+function wendeSpracheAn() {
+  var T = TEXTE[sprache];
+  document.documentElement.lang = sprache;
+  document.title = T.titel;
+  $$('[data-t]').forEach(function (el) { el.textContent = T[el.getAttribute('data-t')] || ''; });
+  $$('[data-aalt]').forEach(function (el) { el.alt = T[el.getAttribute('data-aalt')] || ''; });
+  $$('[data-alabel]').forEach(function (el) { el.setAttribute('aria-label', T[el.getAttribute('data-alabel')] || ''); });
+  baueAlleUeberschriften();
+  try { localStorage.setItem('flp-lang', sprache); } catch (e) {}
+}
+
+/* ---------- Bühne aufbauen ---------- */
+var intro = $('#intro'), buehne = $('#buehne');
+var saetze = [], introDatumEl;
+
+(function baueBuehne() {
+  var NS = 'http://www.w3.org/2000/svg';
+  // längsten Satz finden -> ein gemeinsamer Maßstab für alle Screens
+  var messer = document.createElementNS(NS, 'svg');
+  messer.style.position = 'absolute'; messer.style.visibility = 'hidden';
+  document.body.appendChild(messer);
+  var maxW = 0, breiten = [];
+  BUEHNE.forEach(function (z) {
+    var t = document.createElementNS(NS, 'text');
+    t.setAttribute('font-size', '100');
+    t.setAttribute('style', 'font-family:var(--schrift);font-weight:700;letter-spacing:-0.02em');
+    t.textContent = z.text;
+    messer.appendChild(t);
+    var w = 600;
+    try { w = t.getComputedTextLength(); } catch (e) {}
+    breiten.push(w);
+    if (w > maxW) maxW = w;
+  });
+  document.body.removeChild(messer);
+
+  BUEHNE.forEach(function (z, i) {
+    var lage = document.createElement('div');
+    lage.className = 'satz';
+    lage.setAttribute('lang', z.lang);
+    var svg = document.createElementNS(NS, 'svg');
+    var txt = document.createElementNS(NS, 'text');
+    txt.setAttribute('font-size', '100');
+    txt.setAttribute('y', '105');
+    txt.setAttribute('x', String((maxW - breiten[i]) / 2));
+    txt.textContent = z.text;
+    if (!REDUZIERT) {
+      var g = document.createElementNS(NS, 'g');
+      g.setAttribute('filter', 'url(#warp)');
+      g.appendChild(txt);
+      svg.appendChild(g);
+    } else {
+      svg.appendChild(txt);
+    }
+    svg.setAttribute('viewBox', '-14 -20 ' + (maxW + 28) + ' 170');
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', z.sr);
+    lage.appendChild(svg);
+    buehne.appendChild(lage);
+    saetze.push(lage);
+  });
+
+  introDatumEl = document.createElement('div');
+  introDatumEl.id = 'introDatum';
+  introDatumEl.textContent = INTRO_DATUM;
+  buehne.appendChild(introDatumEl);
+
+  // Snap-Marken hinter der klebenden Bühne: die Bühne selbst ist Screen 0,
+  // danach eine Marke pro weiterer Sprache plus eine für den Flug der Wortmarke.
+  for (var i = 0; i < BUEHNE.length; i++) {
+    var m = document.createElement('div');
+    m.className = 'marke';
+    intro.appendChild(m);
+  }
+})();
+
+/* ---------- Hörprobe ggf. abschalten ---------- */
+if (!HOERPROBE_AKTIV) {
+  $('#hoeren').remove();
+  $$('a[href="#hoeren"]').forEach(function (a) { a.remove(); });
+}
+
+/* ---------- Scroll-Mechanik: Überblenden, Flug, Kopfzeile ---------- */
+var kopf = $('#kopf'), kopfWm = $('#kopfWm'), wmFlug = $('#wmFlug');
+var vh = document.documentElement.clientHeight;
+
+function ease(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+
+function stand() {
+  var y = window.scrollY || window.pageYOffset;
+  var pos = y / vh;
+  var n = BUEHNE.length;
+
+  // Flug der Wortmarke: zwischen Marke n-1 und n
+  var p = Math.max(0, Math.min(1, pos - (n - 1)));
+
+  // Überblenden der Sprachen
+  for (var i = 0; i < n; i++) {
+    var o;
+    if (i === n - 1) {
+      // bleibt stehen bis zum Flug, dann übernimmt die fliegende Wortmarke
+      o = (p > 0.005) ? 0 : Math.max(0, Math.min(1, 1 - ((n - 1) - pos) * 1.8));
+    } else {
+      o = Math.max(0, 1 - Math.abs(pos - i) * 1.8);
+    }
+    saetze[i].style.opacity = o;
+  }
+  // Datum am unteren Rand: bleibt stehen und wandert mit dem Grün hinaus
+  introDatumEl.style.opacity = Math.max(0, Math.min(1, (pos - (n - 1.45)) * 2.4));
+
+  if (p > 0.005 && p < 0.995 && !REDUZIERT) {
+    var e = ease(p);
+    wmFlug.style.display = 'block';
+    var ziel = kopfWm.getBoundingClientRect();
+    var fw = wmFlug.offsetWidth, fh = wmFlug.offsetHeight;
+    var s0 = Math.min((0.92 * window.innerWidth) / fw, 4.5);
+    var s = s0 + (1 - s0) * e;
+    var x0 = (window.innerWidth - fw * s0) / 2;
+    var y0 = (vh - fh * s0) / 2;
+    var x = x0 + (ziel.left - x0) * e;
+    var yv = y0 + (ziel.top - y0) * e;
+    wmFlug.style.transform = 'translate(' + x + 'px,' + yv + 'px) scale(' + s + ')';
+    kopf.classList.remove('an');
+  } else if (p >= 0.995 || (REDUZIERT && p > 0)) {
+    wmFlug.style.display = 'none';
+    kopf.classList.add('an');
+  } else {
+    wmFlug.style.display = 'none';
+    kopf.classList.remove('an');
+  }
+
+  setzeTinte(y);
+}
+
+window.addEventListener('scroll', stand, { passive: true });
+document.addEventListener('visibilitychange', stand);
+
+window.addEventListener('resize', function () {
+  vh = document.documentElement.clientHeight;
+  requestAnimationFrame(stand);
+});
+
+/* ---------- Kopfzeilen-Farbe und Anker-Ziele ----------
+   Mit gestapelten sticky-Kapiteln taugen weder IntersectionObserver
+   noch die Anker-Geometrie des Browsers: geklebte Kapitel liegen alle
+   bei top 0. Beides wird deshalb aus der Scroll-Position gerechnet. */
+var kapitel = $$('.kap');
+// statische Snap-Marken für die Kapitel (siehe CSS-Kommentar bei .kap)
+(function () {
+  var stapel = $('#stapel');
+  kapitel.forEach(function (k, i) {
+    var m = document.createElement('div');
+    m.className = 'kmarke';
+    m.style.top = (i * 100) + 'svh';
+    stapel.appendChild(m);
+  });
+})();
+function kapitelOben(y) {
+  var introH = intro.offsetHeight;
+  if (y < introH - 1) return null;                       // noch auf der Bühne
+  var i = Math.floor((y - introH) / vh + 0.5);           // wer das obere Band füllt
+  return kapitel[Math.max(0, Math.min(kapitel.length - 1, i))];
+}
+function setzeTinte(y) {
+  var k = kapitelOben(y);
+  document.documentElement.style.setProperty('--tinte', k ? k.getAttribute('data-tinte') : '#ffffff');
+}
+document.addEventListener('click', function (e) {
+  var a = e.target && e.target.closest ? e.target.closest('a[href^="#"]') : null;
+  if (!a) return;
+  var href = a.getAttribute('href');
+  if (!href || href.length < 2) return;          // "#" allein gehört den Dialogen
+  var ziel = document.querySelector(href);
+  var idx = ziel ? kapitel.indexOf(ziel) : -1;
+  if (idx < 0) return;
+  e.preventDefault();
+  var ziel_y = intro.offsetHeight + idx * vh;
+  if (REDUZIERT || document.visibilityState === 'hidden') {
+    // im versteckten Tab gibt es kein rAF und keine smooth-Scrolls: sofort
+    // springen. Wichtig: 'instant', denn 'auto' hieße "nimm das CSS" und
+    // das CSS sagt smooth.
+    window.scrollTo({ top: ziel_y, behavior: 'instant' });
+    setzeTinte(ziel_y);
+    return;
+  }
+  // erst das Menü zuklappen lassen, dann scrollen
+  setzeTinte(ziel_y);
+  requestAnimationFrame(function () {
+    requestAnimationFrame(function () {
+      window.scrollTo({ top: ziel_y, behavior: 'smooth' });
+    });
+  });
+});
+
+/* ---------- Filter offscreen abschalten (Akku) ---------- */
+(function () {
+  if (REDUZIERT) return;
+  var b = new IntersectionObserver(function (eintraege) {
+    eintraege.forEach(function (e) {
+      var g = e.target.querySelector('g[filter], g[data-filter]');
+      if (!g) return;
+      if (e.isIntersecting) {
+        if (g.hasAttribute('data-filter')) { g.setAttribute('filter', g.getAttribute('data-filter')); g.removeAttribute('data-filter'); }
+      } else {
+        if (g.hasAttribute('filter')) { g.setAttribute('data-filter', g.getAttribute('filter')); g.removeAttribute('filter'); }
+      }
+    });
+  }, { rootMargin: '30% 0px 30% 0px' });
+  $$('.ueber').forEach(function (u) { b.observe(u); });
+})();
+
+/* ---------- Menü ---------- */
+var menu = $('#menu');
+$('#btnBurger').addEventListener('click', function () { menu.classList.add('offen'); });
+$('#menuZu').addEventListener('click', function () { menu.classList.remove('offen'); });
+$$('#menu a').forEach(function (a) {
+  a.addEventListener('click', function () { menu.classList.remove('offen'); });
+});
+
+/* ---------- Sprache umschalten ---------- */
+function spracheUm() {
+  sprache = sprache === 'de' ? 'en' : 'de';
+  wendeSpracheAn();
+}
+$('#btnSprache').addEventListener('click', spracheUm);
+$('#menuSprache').addEventListener('click', spracheUm);
+
+/* ---------- Teilen ---------- */
+function zeigeToast(text) {
+  var t = $('#toast');
+  t.textContent = text;
+  t.classList.add('an');
+  setTimeout(function () { t.classList.remove('an'); }, 2200);
+}
+function teilen() {
+  var T = TEXTE[sprache];
+  var url = (location.protocol === 'file:') ? EVENT.url : location.href.split('#')[0];
+  if (navigator.share) {
+    navigator.share({ title: T.titel, url: url }).catch(function () {});
+  } else if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(function () { zeigeToast(T.kopiert); }, function () {});
+  } else {
+    window.prompt('URL:', url);
+  }
+}
+['btnTeilenKopf', 'btnTeilen1', 'btnTeilen2'].forEach(function (id) {
+  var b = $('#' + id); if (b) b.addEventListener('click', teilen);
+});
+
+/* ---------- Kalenderdatei (.ics), im Browser erzeugt ---------- */
+function kalender() {
+  var stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
+  var ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//feelinglikeaplant.de//DE',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'BEGIN:VTIMEZONE',
+    'TZID:Europe/Berlin',
+    'BEGIN:DAYLIGHT',
+    'TZOFFSETFROM:+0100',
+    'TZOFFSETTO:+0200',
+    'TZNAME:CEST',
+    'DTSTART:19700329T020000',
+    'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU',
+    'END:DAYLIGHT',
+    'BEGIN:STANDARD',
+    'TZOFFSETFROM:+0200',
+    'TZOFFSETTO:+0100',
+    'TZNAME:CET',
+    'DTSTART:19701025T030000',
+    'RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU',
+    'END:STANDARD',
+    'END:VTIMEZONE',
+    'BEGIN:VEVENT',
+    'UID:' + EVENT.uid,
+    'SEQUENCE:0',
+    'DTSTAMP:' + stamp,
+    'DTSTART;TZID=' + EVENT.tz + ':' + EVENT.start,
+    'SUMMARY:' + EVENT.titel,
+    'LOCATION:' + EVENT.ort.replace(/,/g, '\\,'),
+    'URL:' + EVENT.url,
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n');
+  var blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'feeling-like-a-plant.ics';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 800);
+}
+['btnKalender1', 'btnKalender2'].forEach(function (id) {
+  var b = $('#' + id); if (b) b.addEventListener('click', kalender);
+});
+
+/* ---------- Hörprobe ---------- */
+(function () {
+  if (!HOERPROBE_AKTIV) return;
+  var player = $('#player'), btn = $('#btnTon'), hinweis = $('#tonHinweis');
+  var span = btn.querySelector('span');
+  function kaputt() {
+    btn.hidden = true;
+    hinweis.hidden = false;
+  }
+  player.addEventListener('error', kaputt, true);
+  player.addEventListener('ended', function () { span.textContent = TEXTE[sprache].tonAn; });
+  btn.addEventListener('click', function () {
+    if (player.paused) {
+      player.play().then(function () {
+        span.textContent = TEXTE[sprache].tonAus;
+      }).catch(kaputt);
+    } else {
+      player.pause();
+      span.textContent = TEXTE[sprache].tonAn;
+    }
+  });
+})();
+
+/* ---------- Dialoge ----------
+   Beim Öffnen springt Chrome sonst an den ersten Snap-Punkt (Seitenanfang):
+   Snap solange abschalten und die Scroll-Position festhalten. */
+function oeffneDialog(dlg) {
+  var y = window.scrollY || window.pageYOffset;
+  document.documentElement.classList.add('kein-snap');
+  dlg.showModal();
+  requestAnimationFrame(function () { window.scrollTo({ top: y, behavior: 'instant' }); });
+  dlg.addEventListener('close', function () {
+    window.scrollTo({ top: y, behavior: 'instant' });
+    document.documentElement.classList.remove('kein-snap');
+  }, { once: true });
+}
+$('#lnkImpressum').addEventListener('click', function (e) { e.preventDefault(); oeffneDialog($('#dlgImpressum')); });
+$('#lnkDatenschutz').addEventListener('click', function (e) { e.preventDefault(); oeffneDialog($('#dlgDatenschutz')); });
+$$('dialog [data-zu]').forEach(function (b) {
+  b.addEventListener('click', function () { b.closest('dialog').close(); });
+});
+
+/* ---------- Start ---------- */
+wendeSpracheAn();
+stand();
+// Deep-Link auf ein Kapitel: der Browser springt bei sticky-Kapiteln falsch,
+// deshalb einmal von Hand an die gerechnete Stelle.
+if (location.hash) {
+  var ziel = document.querySelector(location.hash);
+  if (ziel && kapitel.indexOf(ziel) >= 0) {
+    requestAnimationFrame(function () {
+      window.scrollTo({ top: intro.offsetHeight + kapitel.indexOf(ziel) * vh, behavior: 'instant' });
+    });
+  }
+}
+</script>
+
+<!-- ============================================================
+NOCH ZU FÜLLEN
+  1. hoerprobe.mp3 neben diese Datei legen (kommt von Felix).
+     Ohne Datei zeigt Kapitel 4 automatisch "Die Aufnahme folgt."
+     Ganz abschalten: HOERPROBE_AKTIV = false (eine Zeile im Script-Kopf).
+  2. CooperHewitt-Bold.woff2 und CooperHewitt-Medium.woff2 daneben legen,
+     @font-face-Block oben im <style> einkommentieren.
+     DANACH: Screen 6 (Ukrainisch) braucht SVG-Umrisse, Cooper Hewitt hat
+     kein Kyrillisch (Eintrag outline:true im BUEHNE-Array).
+     Und die Sonderzeichen prüfen: Ü Ö Ć Ę Ś İ.
+  3. og:image (1200 × 630) erzeugen und im <head> eintragen.
+  4. Line-up in Kapitel 3, sobald es steht.
+  5. Impressum: Platzhalter ⟨Name/Anschrift/E-Mail⟩ füllen (§ 5 DDG).
+  6. Datenschutz: Hoster und Speicherdauer eintragen.
+     Beides sind ENTWÜRFE und gehören vor dem Livegang geprüft.
+  7. illustration.webp gegen Rays saubere Datei tauschen,
+     danach den alt-Text am neuen Bild prüfen (illuAlt in TEXTE).
+  8. Die 5 ungeprüften Intro-Sätze gegenlesen lassen
+     (in Versalien, auf einem Handy, in der echten Schrift).
+============================================================ -->
+</body>
+</html>
