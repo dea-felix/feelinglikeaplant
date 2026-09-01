@@ -60,11 +60,23 @@
 html {
   scroll-snap-type: y proximity;
   scroll-behavior: smooth;
+  /* Die Leinwandfarbe MUSS auf dem html stehen, nicht auf dem body. Hat das
+     html keinen eigenen Hintergrund, reicht der Browser den des body an die
+     Leinwand durch - und die Leinwand ist genau das, was iOS Safari hinter
+     der AUSGEKLAPPTEN Adressleiste durchscheinen laesst. Weisser body hiess
+     also: weisser Streifen unter dem gruenen Startbildschirm, der beim
+     Hochwischen verschwand, weil die eingeklappte Pille stattdessen
+     theme-color nimmt. Der Startwert steht auf Gruen wie das erste Panel;
+     ab dem ersten stand() zieht setzeTinte() ihn per Inline-Stil nach. */
+  background: var(--gruen);
 }
 body {
   font-family: var(--schrift);
   font-weight: 500;
-  background: var(--weiss);
+  /* transparent, nicht weiss: sonst faengt der body die Leinwandfarbe wieder
+     ab. Sichtbar wird dadurch nichts anderes - an jeder Scrollposition deckt
+     ein Panel den Bildschirm vollstaendig (gemessen ueber 365 Positionen). */
+  background: transparent;
   color: var(--braun);
   overflow-x: hidden;
 }
@@ -1049,20 +1061,40 @@ function panelOben(y) {
   for (var i = 0; i < basis.length; i++) if (y + kopfBand >= basis[i]) k = i;
   return panels[k];
 }
-var letztesPanel = null;
+/* Welche Flaeche BEHERRSCHT den Bildschirm? Fuer die Balken von iOS zaehlt
+   nicht, was unter der Wortmarke liegt, sondern was der Nutzer sieht - das
+   sind zwei verschiedene Fragen, und sie hingen frueher an derselben
+   Funktion. Der Vorhang kommt von unten; ab halbem Bildschirm gehoert die
+   Flaeche dem neuen Kapitel. Mit dem alten (spaeten) Umschaltpunkt standen
+   die Balken an 78 von 365 Scrollpositionen auf der falschen Farbe - bei bis
+   zu 89 % Deckung war die Leiste noch gruen, waehrend der Bildschirm schon
+   weiss war. */
+function panelFlaeche(y) {
+  var k = 0;
+  for (var i = 0; i < basis.length; i++) if (y + vh / 2 >= basis[i]) k = i;
+  return panels[k];
+}
+var letztesPanel = null, letzteFlaeche = null;
 var metaThemeColor = document.querySelector('meta[name="theme-color"]');
 function setzeTinte(y) {
+  // Zwei getrennte Waechter, damit weiterhin nur bei echtem Wechsel
+  // geschrieben wird - die Umschaltpunkte liegen jetzt aber auseinander.
   var p = panelOben(y);
-  if (p === letztesPanel) return;          // sonst zwei Style-Schreibvorgaenge je Frame
-  letztesPanel = p;
-  document.documentElement.style.setProperty('--tinte', p.getAttribute('data-tinte') || '#ffffff');
-  // Leinwandfarbe mitziehen: auf iOS zeigt das Gummiband an Anfang und Ende
-  // sonst den weissen body-Hintergrund unter einer farbigen Flaeche.
-  var grund = getComputedStyle(p).backgroundColor;
-  document.documentElement.style.backgroundColor = grund;
-  // Und dieselbe Farbe an iOS melden, sonst bleiben die Balken hinter
-  // Statusleiste und Adressleiste in der Farbe vom Seitenanfang stehen.
-  if (metaThemeColor) metaThemeColor.setAttribute('content', grund);
+  if (p !== letztesPanel) {
+    letztesPanel = p;
+    document.documentElement.style.setProperty('--tinte', p.getAttribute('data-tinte') || '#ffffff');
+  }
+  var f = panelFlaeche(y);
+  if (f !== letzteFlaeche) {
+    letzteFlaeche = f;
+    // Leinwandfarbe mitziehen: auf iOS zeigt das Gummiband an Anfang und Ende
+    // sonst den Grund unter einer farbigen Flaeche.
+    var grund = getComputedStyle(f).backgroundColor;
+    document.documentElement.style.backgroundColor = grund;
+    // Und dieselbe Farbe an iOS melden, sonst bleiben die Balken hinter
+    // Statusleiste und Adressleiste in der Farbe vom Seitenanfang stehen.
+    if (metaThemeColor) metaThemeColor.setAttribute('content', grund);
+  }
 }
 document.addEventListener('click', function (e) {
   var a = e.target && e.target.closest ? e.target.closest('a[href^="#"]') : null;
