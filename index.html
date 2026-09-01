@@ -476,9 +476,11 @@ noscript .njs {
         <button class="knopf" id="btnTon"><span data-t="tonAn"></span></button>
       </p>
       <p class="klein" id="tonHinweis" hidden data-t="tonFehlt"></p>
+      <!-- preload="none" bleibt: die Datei ist 3,3 MB und soll erst laden,
+           wenn wirklich jemand auf "Ton an" drueckt - nicht bei jedem
+           Seitenaufruf ueber Mobilfunk. -->
       <audio id="player" preload="none">
         <source src="hoerprobe.mp3" type="audio/mpeg">
-        <!-- NOCH ZU FÜLLEN: hoerprobe.mp3 daneben legen -->
       </audio>
     </div>
   </section>
@@ -607,7 +609,7 @@ var TEXTE = {
     k3text: 'Konzerte, Ausstellung, Performance.',
     k4u: 'DER SOUND DER NATUR',
     k4z1: 'Schon mal Musik.', k4z2: 'Laut ist besser.',
-    tonAn: 'Ton an', tonAus: 'Ton aus',
+    tonAn: 'Ton an', tonAus: 'Ton aus', tonLaedt: 'Lädt …',
     tonFehlt: 'Die Aufnahme folgt.',
     k5u: 'WANN UND WO',
     k5z1: 'Samstag, 26. September 2026.', k5z2: 'Amadeus, Oldenburg.', k5z3: 'Einlass 17 Uhr.',
@@ -632,7 +634,7 @@ var TEXTE = {
     k3text: 'Concerts, exhibition, performance.',
     k4u: 'THE SOUND OF NATURE',
     k4z1: 'Some music first.', k4z2: 'Loud is better.',
-    tonAn: 'Sound on', tonAus: 'Sound off',
+    tonAn: 'Sound on', tonAus: 'Sound off', tonLaedt: 'Loading …',
     tonFehlt: 'The recording is on its way.',
     k5u: 'WHEN AND WHERE',
     k5z1: 'Saturday, 26 September 2026.', k5z2: 'Amadeus, Oldenburg.', k5z3: 'Doors 5 pm.',
@@ -1240,9 +1242,23 @@ function kalender() {
   player.addEventListener('ended', function () { span.textContent = TEXTE[sprache].tonAn; });
   btn.addEventListener('click', function () {
     if (player.paused) {
+      // Die Datei ist 3,3 MB und laedt wegen preload="none" erst jetzt.
+      // Ueber Mobilfunk vergehen da ein paar Sekunden, in denen sonst gar
+      // nichts passiert und der Knopf tot wirkt - auf einer Veranstaltung
+      // genau der Moment, in dem jemand aufgibt.
+      span.textContent = TEXTE[sprache].tonLaedt;
       player.play().then(function () {
         span.textContent = TEXTE[sprache].tonAus;
-      }).catch(kaputt);
+      }).catch(function (e) {
+        // NUR ein echter Quellfehler heisst "es gibt keine Aufnahme". Ein
+        // abgelehntes play() heisst das ausdruecklich NICHT: iOS lehnt im
+        // Stromsparmodus ab, ein abgebrochener Ladeversuch wirft AbortError.
+        // Vorher versteckte JEDER dieser Faelle den Knopf und behauptete
+        // "Die Aufnahme folgt." - seit die Aufnahme da ist, waere das
+        // schlicht falsch. Also stehen lassen und nochmal drueckbar machen.
+        if (e && e.name === 'NotSupportedError') kaputt();
+        else span.textContent = TEXTE[sprache].tonAn;
+      });
     } else {
       player.pause();
       span.textContent = TEXTE[sprache].tonAn;
