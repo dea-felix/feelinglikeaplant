@@ -470,9 +470,12 @@ noscript .njs {
   <section class="kap bg-blau" id="hoeren" data-tinte="#ffffff">
     <div class="kap-inner">
       <div class="ueber" data-ueber="k4u"></div>
-      <p class="zeile" data-t="k4z1"></p>
-      <p class="zeile" data-t="k4z2"></p>
-      <p style="margin-top:1.4rem">
+      <!-- Ohne Fliesstext (die beiden Zeilen sind am 01.09. auf Felix'
+           Wunsch raus) steht der Knopf direkt unter der Ueberschrift. Die
+           1,4rem von vorher waren der Abstand ZU den Zeilen und sind hier
+           zu eng - 2,6rem entspricht dem Abstand, den die uebrigen Kapitel
+           zwischen Ueberschrift und Inhalt haben. -->
+      <p style="margin-top:2.6rem">
         <button class="knopf" id="btnTon"><span data-t="tonAn"></span></button>
       </p>
       <p class="klein" id="tonHinweis" hidden data-t="tonFehlt"></p>
@@ -608,7 +611,6 @@ var TEXTE = {
     k3u: 'COMING SOON',
     k3text: 'Konzerte, Ausstellung, Performance.',
     k4u: 'DER SOUND DER NATUR',
-    k4z1: 'Schon mal Musik.', k4z2: 'Laut ist besser.',
     tonAn: 'Ton an', tonAus: 'Ton aus', tonLaedt: 'Lädt …',
     tonFehlt: 'Die Aufnahme folgt.',
     k5u: 'WANN UND WO',
@@ -633,7 +635,6 @@ var TEXTE = {
     k3u: 'COMING SOON',
     k3text: 'Concerts, exhibition, performance.',
     k4u: 'THE SOUND OF NATURE',
-    k4z1: 'Some music first.', k4z2: 'Loud is better.',
     tonAn: 'Sound on', tonAus: 'Sound off', tonLaedt: 'Loading …',
     tonFehlt: 'The recording is on its way.',
     k5u: 'WHEN AND WHERE',
