@@ -17,6 +17,11 @@
 <meta property="og:image:alt" content="Feeling like a plant. 26.09.2026, Amadeus Oldenburg.">
 <meta property="og:locale" content="de_DE">
 <meta name="twitter:card" content="summary_large_image">
+<!-- Faerbt auf dem iPhone die Flaechen hinter Statusleiste und Safari-Adressleiste.
+     Ohne diese Angabe sucht sich iOS selbst eine Farbe und nimmt das Buehnen-Gruen -
+     dann stehen ueber und unter einem sandfarbenen Kapitel gruene Balken.
+     Der Wert wird beim Scrollen in setzeTinte() auf die Kapitelfarbe nachgezogen. -->
+<meta name="theme-color" content="#6d9e54">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%236d9e54'/%3E%3C/svg%3E">
 
 <style>
@@ -65,22 +70,55 @@ body {
 }
 
 /* ---------- Kopfzeile ---------- */
+/* Die Kopfzeile bewegt sich NIE mehr als Ganzes. Solange sie auf
+   translateY(-110%) stand, lieferte kopfWm.getBoundingClientRect() das
+   Flugziel mitverschoben: gemessen top -52 statt +28. Die Wortmarke flog
+   also 80 px ueber die Kopfzeile hinaus ins Nichts. Das war der zweite,
+   groessere Sprung - und der Grund, warum die Symbole nicht "danach",
+   sondern zusammen mit der Marke kamen. */
 #kopf {
   position: fixed; top: 0; left: 0; right: 0; z-index: 60;
-  display: flex; align-items: center; gap: 1rem;
+  display: flex; align-items: center;
+  /* Der Abstand darf auf schmalen Geraeten mitgeben. Bei festen 1rem lief der
+     Burger - unter 768px die EINZIGE Navigation - schon ab 379px Fensterbreite
+     aus dem Bild, ein iPhone SE mit 375px war also betroffen. */
+  gap: clamp(0.4rem, 2.2vw, 1rem);
   padding: max(0.9rem, env(safe-area-inset-top)) 1.1rem 0.9rem;
   color: var(--tinte);
-  transform: translateY(-110%);
-  transition: transform .45s cubic-bezier(.4,0,.2,1);
-  pointer-events: none;
+  pointer-events: none;          /* die Einzelteile schalten sich selbst frei */
 }
-#kopf.an { transform: translateY(0); pointer-events: auto; }
 #kopfWm {
   font-weight: 700; text-transform: uppercase; letter-spacing: -0.02em;
-  font-size: 0.95rem; white-space: nowrap; visibility: hidden;
+  /* Mitschrumpfen aus demselben Grund wie der Abstand oben. Ungefaehrlich fuer
+     den Flug: messeFlug() liest die Andockstelle zur Laufzeit mit
+     getBoundingClientRect, rechnet also mit der tatsaechlichen Groesse. */
+  font-size: clamp(0.72rem, 3.4vw, 0.95rem);
+  white-space: nowrap; visibility: hidden;
 }
-#kopf.an #kopfWm { visibility: visible; }
-#kopfNav { display: none; gap: 1.4rem; margin-left: auto; }
+/* visibility:hidden statt opacity:0 - die Box bleibt im Layout stehen, also
+   liefert getBoundingClientRect weiter die echte Andockstelle, und ein
+   Vorleseprogramm sagt die Wortmarke nicht doppelt an. */
+#kopf.wm #kopfWm { visibility: visible; }
+
+/* Teilen, DE/EN und Menue fliegen ERST NACH dem Andocken von oben ein.
+   Der Weg ist in Pixeln gerechnet, nicht in Prozent: #kopfNav ist nur rund
+   16 px hoch, -180% haetten es gar nicht aus dem Bild geschoben - und die
+   Polsterung oben ist auf einem iPhone mit Notch bis zu 59 px hoch. */
+#kopfNav, #kopf .kopf-knopf {
+  transform: translateY(calc(-100% - max(0.9rem, env(safe-area-inset-top)) - 1rem));
+  opacity: 0;
+  transition: transform .40s cubic-bezier(.2,.75,.2,1), opacity .25s linear;
+}
+#kopf.nav #kopfNav, #kopf.nav .kopf-knopf {
+  transform: none; opacity: 1; pointer-events: auto;
+}
+/* Verzoegerung NUR im .nav-Zustand: beim Zurueckscrollen fliegen sie sofort
+   wieder raus, statt traege nachzuhinken. */
+#kopf.nav #kopfNav       { transition-delay: .10s; }
+#kopf.nav #btnTeilenKopf { transition-delay: .16s; }
+#kopf.nav #btnSprache    { transition-delay: .22s; }
+#kopf.nav #btnBurger     { transition-delay: .28s; }
+#kopfNav { display: none; gap: clamp(0.7rem, 1.6vw, 1.4rem); margin-left: auto; }
 #kopfNav a {
   color: inherit; text-decoration: none; font-weight: 700;
   font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.02em;
@@ -94,7 +132,11 @@ body {
   display: inline-flex; align-items: center; justify-content: center; gap: .3rem;
 }
 #btnBurger { margin-left: auto; }
-@media (min-width: 768px) {
+/* Erst ab 900px, nicht ab 768px. Die sechs Kapitel-Links brauchen im DEUTSCHEN
+   rund 800px zusammen mit Wortmarke, Teilen und DE/EN - bei genau 768px ragte
+   der DE/EN-Knopf gemessene 17px aus dem Bild. Darunter uebernimmt der Burger,
+   was auf einem hochkant gehaltenen Tablet ohnehin das gewohnte Bild ist. */
+@media (min-width: 900px) {
   #kopfNav { display: flex; }
   #btnBurger { display: none; }
 }
@@ -118,16 +160,39 @@ body {
 }
 #menuSprache { margin-top: 2rem; }
 
-/* ---------- Intro / Bühne ---------- */
-#intro { position: relative; }
-.marke { height: 100svh; scroll-snap-align: start; }
-#buehne {
-  position: sticky; top: 0; height: 100svh; overflow: hidden;
-  background: var(--gruen);
-  display: grid; place-items: center;
+/* ---------- Intro / Bühne ----------
+   Buehne und Kapitel liegen ab jetzt in EINEM sticky-Stapel. Jedes Panel
+   klebt bei top:0, bis das naechste als Vorhang von unten darueberfaehrt.
+   Ein sticky-Element klebt nur (Containerhoehe - Elementhoehe) weit -
+   solange Buehne und Kapitel in zwei Containern lagen, war das Loch
+   zwischen ihnen strukturell unvermeidbar. */
+
+/* Verweil-Bloecke: geben einem Panel seine Klebedauer, malen selbst nichts. */
+.luft { height: 100vh; height: 100lvh; }
+
+/* Snap-Marken: eine je Bildschirm, absolut, tragen keine Hoehe bei. */
+.marke {
+  position: absolute; left: 0; width: 1px;
+  height: 100vh; height: 100lvh;
+  scroll-snap-align: start; pointer-events: none;
 }
+
+/* Ausgleich am Dokumentende. Ohne ihn ist maxScroll auf dem Handy kleiner
+   als der letzte Snap-Punkt: das braune Kapitel dockt nie an, oben bleibt
+   dauerhaft ein oranger Streifen, und ganz unten schaut der weisse
+   body-Hintergrund heraus. Auf dem Desktop ist der Block 0 px hoch. */
+#schwanz { height: 0; height: calc(100lvh - 100svh); }
+
+/* Die Buehne ist Panel 0. Geometrie kommt jetzt von .kap, hier nur noch
+   die Farbe - und padding:0, weil .satz und #introDatum absolut am
+   Polsterkasten haengen und die .kap-Polsterung sie sonst einquetschen
+   wuerde. */
+#buehne { background: var(--gruen); --grund: var(--gruen); padding: 0; }
 .satz {
-  position: absolute; inset: 0;
+  /* Die Buehne ist jetzt 100lvh hoch. Ohne das Bodenpolster zentrierten
+     sich die Sprachen um (lvh-svh)/2 zu tief - auf dem Handy also hinter
+     der Adressleiste. Auf dem Desktop ist der Wert 0. */
+  position: absolute; inset: 0 0 calc(100lvh - 100svh) 0;
   display: grid; place-items: center;
   opacity: 0; padding: 0 4vw;
 }
@@ -138,37 +203,54 @@ body {
 }
 #introDatum {
   position: absolute; left: 0; right: 0;
-  bottom: max(7svh, calc(env(safe-area-inset-bottom) + 3svh));
+  /* KEIN env() mehr: env(safe-area-inset-bottom) meldet auf iOS Safari 0,
+     solange die untere Leiste ausgeklappt ist, und rund 34 px, sobald sie
+     einklappt - genau dabei waere das Datum gesprungen. 7svh sind auf einem
+     745-px-Bildschirm 52 px und liegen sicher ueber dem Home-Indicator. */
+  bottom: calc(7svh + 100lvh - 100svh);
   text-align: center; color: var(--weiss);
   font-weight: 700; font-size: clamp(0.85rem, 3.4vw, 1.15rem);
   letter-spacing: 0.06em; opacity: 0;
 }
 
-/* die fliegende Wortmarke (Übergang Bühne → Kopfzeile) */
+/* die fliegende Wortmarke (Uebergang Buehne -> Kopfzeile)
+   font-size setzt das Skript: so gross, dass die Marke auf der Buehne in
+   Massstab 1 steht und von dort nur noch VERKLEINERT wird. Nach oben
+   skalierter Text wird unscharf, nach unten skalierter nicht. Aus dem
+   gleichen Grund faellt will-change weg: es haelt eine EINMAL in
+   Layoutgroesse gerasterte Textur fest, die dann um Faktor 3,5
+   aufgeblasen wuerde - ein weichgezeichneter Geist genau in dem Moment,
+   in dem die Wortmarke am groessten ist. */
 #wmFlug {
   position: fixed; top: 0; left: 0; z-index: 65;
   font-weight: 700; text-transform: uppercase; letter-spacing: -0.02em;
   font-size: 0.95rem; white-space: nowrap; color: var(--weiss);
-  transform-origin: top left; will-change: transform;
+  transform-origin: top left;
   display: none; pointer-events: none;
 }
 
 /* ---------- Kapitel ---------- */
 .kap {
   position: sticky; top: 0;
-  height: 100svh; overflow: hidden;
+  /* 100lvh statt 100svh: nur so deckt ein Panel den Bildschirm auch bei
+     eingeklappter Adressleiste ganz ab. Bei 100svh steht das naechste
+     Panel exakt 100svh tiefer - im Band von svh bis lvh leuchtet dann
+     seine Farbe durch, und genau das ist der Streifen. lvh ist so statisch
+     wie svh: beim Ein-/Ausklappen der Leiste aendert es sich NICHT, das
+     Layout springt also weiterhin nicht. */
+  height: 100vh; height: 100lvh; overflow: hidden;
   display: grid; place-items: center;
+  /* Unten: fester Sockel plus die Differenz lvh-svh, damit der Inhalt in
+     denselben oberen 100svh sitzt wie bisher. env(safe-area-inset-bottom)
+     ist raus - es wechselt auf iOS beim Ein-/Ausklappen zwischen 0 und
+     rund 34 px und haette den Inhalt um rund 9 px springen lassen. */
   padding: max(4.5rem, env(safe-area-inset-top) + 3.5rem) 6vw
-           max(2.5rem, env(safe-area-inset-bottom) + 1.5rem);
-  /* KEIN scroll-snap-align hier: geklebte Kapitel hätten wandernde
-     Snap-Punkte, die jeden Scroll zurücksaugen. Gesnappt wird auf
-     die statischen Marken im #stapel. */
+           calc(2.5rem + 100lvh - 100svh);
+  /* KEIN scroll-snap-align hier: geklebte Panels haetten wandernde
+     Snap-Punkte, die jeden Scroll zuruecksaugen. Gesnappt wird auf die
+     absoluten .marke - eine je Bildschirm, fuer Buehne und Kapitel gleich. */
 }
 #stapel { position: relative; }
-.kmarke {
-  position: absolute; left: 0; width: 1px; height: 100svh;
-  scroll-snap-align: start; pointer-events: none;
-}
 .bg-weiss  { background: var(--weiss);  color: var(--braun); --grund: var(--weiss); }
 .bg-sand   { background: var(--sand);   color: var(--braun); --grund: var(--sand); }
 .bg-rot    { background: var(--rot);    color: var(--weiss); --grund: var(--rot); }
@@ -190,7 +272,10 @@ body {
 .zeile { font-size: clamp(1.05rem, 2.8vw, 1.5rem); line-height: 1.7; }
 
 /* Kapitel 1: die Illustration */
-#anfang { padding: max(4.5rem, env(safe-area-inset-top) + 3.5rem) 0 0; }
+/* ueberschreibt die Polsterung von .kap komplett, muss das Bodenpolster
+   deshalb selbst mitbringen - sonst rutscht die Illustration auf dem Handy
+   unter die Adressleiste. */
+#anfang { padding: max(4.5rem, env(safe-area-inset-top) + 3.5rem) 0 calc(100lvh - 100svh); }
 #anfang img {
   max-height: calc(100svh - 5.5rem); max-width: 94vw;
   width: auto; height: auto; object-fit: contain; display: block; margin: 0 auto;
@@ -254,7 +339,14 @@ dialog .zu { margin-top: 1.2rem; }
 /* ---------- Rücksicht: reduzierte Bewegung ---------- */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-snap-type: none; scroll-behavior: auto; }
-  #kopf { transition: none; }
+  /* NUR die Uebergaenge abschalten. Die Sichtbarkeit bleibt an #kopf.nav
+     gebunden. Wuerde hier 'transform:none; opacity:1' unqualifiziert
+     stehen, staenden Teilen, DE/EN und Menue ab Scrollposition 0 sichtbar
+     UND gleichzeitig tot ueber dem gruenen Intro - #kopf hat
+     pointer-events:none, freigeschaltet wird nur unter '#kopf.nav'. */
+  #kopf, #kopfNav, #kopf .kopf-knopf { transition: none; }
+  #kopf.nav #kopfNav, #kopf.nav #btnTeilenKopf,
+  #kopf.nav #btnSprache, #kopf.nav #btnBurger { transition-delay: 0s; }
   .satz, #introDatum { transition: none; }
   svg animate { display: none; }
 }
@@ -293,7 +385,7 @@ noscript .njs {
   </defs>
 </svg>
 
-<header id="kopf">
+<header id="kopf" inert>
   <span id="kopfWm" aria-label="Feeling like a plant">Feeling like a plant</span>
   <nav id="kopfNav" aria-label="Kapitel">
     <a href="#anfang"    data-t="navAnfang"></a>
@@ -317,7 +409,7 @@ noscript .njs {
 </header>
 
 <div id="menu">
-  <button class="kopf-knopf" id="menuZu" aria-label="Menü schließen">
+  <button class="kopf-knopf" id="menuZu" data-alabel="menueZuLabel" aria-label="Menü schließen">
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true">
       <path d="M5 5l14 14M19 5L5 19"/>
     </svg>
@@ -334,14 +426,15 @@ noscript .njs {
 <div id="wmFlug" aria-hidden="true">Feeling like a plant</div>
 
 <main>
-  <!-- ================= Teil 1: die Bühne ================= -->
-  <div id="intro">
-    <div id="buehne" role="img" data-alabel="buehneLabel"></div>
-    <!-- Snap-Marken werden per JS erzeugt: eine pro Sprache plus eine für den Übergang -->
-  </div>
-
-  <!-- ================= Teil 2: die Kapitel ================= -->
+  <!-- EIN Stapel: die Buehne ist Panel 0, die Farbkapitel fahren als
+       Vorhang von unten darueber. Wie viele Bildschirme die Buehne oben
+       stehen bleibt, steht in data-halt (setzt das Skript: 8 = sieben
+       Sprachen + einer fuer den Flug der Wortmarke). Verweilstrecke
+       (.luft), Snap-Marken (.marke) und der Ausgleich (#schwanz)
+       entstehen ebenfalls im Skript. -->
   <div id="stapel">
+
+    <div class="kap" id="buehne" role="img" data-tinte="#ffffff" data-alabel="buehneLabel"></div>
 
   <section class="kap bg-weiss" id="anfang" data-tinte="#563814">
     <img src="illustration.webp" width="1400" height="1839" data-aalt="illuAlt" alt="">
@@ -514,7 +607,8 @@ var TEXTE = {
     kopiert: 'Link kopiert.',
     illuAlt: 'Gezeichneter Kopf mit geschlossenen Augen, in Blau, Grün und Ocker. Oben aus dem Schädel wächst ein Stängel mit großen grünen und braunen Blättern. Dünne wurzelartige Linien laufen nach unten weg.',
     buehneLabel: 'Derselbe Satz in mehreren Sprachen: Sich fühlen wie eine Pflanze. Zum Weiterlesen scrollen.',
-    teilenLabel: 'Diese Seite teilen', menueLabel: 'Menü öffnen'
+    teilenLabel: 'Diese Seite teilen', menueLabel: 'Menü öffnen',
+    menueZuLabel: 'Menü schließen'
   },
   en: {
     titel: 'Feeling like a plant. 26 September, Amadeus, Oldenburg',
@@ -538,7 +632,8 @@ var TEXTE = {
     kopiert: 'Link copied.',
     illuAlt: 'A drawn head with closed eyes, painted in blue, green and ochre. A stem grows out of the top of the skull, carrying large green and brown leaves. Thin root like lines run downward.',
     buehneLabel: 'The same sentence in several languages: feeling like a plant. Scroll to continue.',
-    teilenLabel: 'Share this page', menueLabel: 'Open the menu'
+    teilenLabel: 'Share this page', menueLabel: 'Open the menu',
+    menueZuLabel: 'Close the menu'
   }
 };
 
@@ -617,7 +712,7 @@ function wendeSpracheAn() {
 }
 
 /* ---------- Bühne aufbauen ---------- */
-var intro = $('#intro'), buehne = $('#buehne');
+var buehne = $('#buehne');
 var saetze = [], introDatumEl;
 
 (function baueBuehne() {
@@ -671,13 +766,11 @@ var saetze = [], introDatumEl;
   introDatumEl.textContent = INTRO_DATUM;
   buehne.appendChild(introDatumEl);
 
-  // Snap-Marken hinter der klebenden Bühne: die Bühne selbst ist Screen 0,
-  // danach eine Marke pro weiterer Sprache plus eine für den Flug der Wortmarke.
-  for (var i = 0; i < BUEHNE.length; i++) {
-    var m = document.createElement('div');
-    m.className = 'marke';
-    intro.appendChild(m);
-  }
+  // Klebedauer der Buehne, in Bildschirmen: einer je Sprache plus EINER fuer
+  // den Flug der Wortmarke. Die 8 sind Pflicht, nicht Geschmack - mit 7
+  // liefe der Vorhang von Kapitel 1 auf demselben Bildschirm wie der Flug,
+  // und genau das soll er nicht. Kommt eine Sprache dazu, waechst es mit.
+  buehne.setAttribute('data-halt', String(BUEHNE.length + 1));
 })();
 
 /* ---------- Hörprobe ggf. abschalten ---------- */
@@ -686,53 +779,180 @@ if (!HOERPROBE_AKTIV) {
   $$('a[href="#hoeren"]').forEach(function (a) { a.remove(); });
 }
 
-/* ---------- Scroll-Mechanik: Überblenden, Flug, Kopfzeile ---------- */
+/* ---------- Scroll-Mechanik: Ueberblenden, Flug, Kopfzeile ---------- */
 var kopf = $('#kopf'), kopfWm = $('#kopfWm'), wmFlug = $('#wmFlug');
-var vh = document.documentElement.clientHeight;
+
+/* Ein Bildschirm ist 100lvh - GEMESSEN, nicht geraten.
+   document.documentElement.clientHeight ist auf dem Handy nicht dasselbe
+   wie das Mass, mit dem das CSS layoutet. Der Fahrplan lief dadurch pro
+   Bildschirm um (lvh - svh) aus dem Takt, bis zum Intro-Ende um bis zu
+   einen halben Bildschirm: der Flug endete weit hinter dem Snap-Punkt.
+   Die Sonde erzwingt Gleichstand. position:fixed, damit sie den
+   Scrollbereich nicht vergroessert. */
+var lvhSonde = document.createElement('div');
+lvhSonde.setAttribute('aria-hidden', 'true');
+lvhSonde.style.cssText = 'position:fixed;top:0;left:0;width:0;height:100lvh;' +
+                         'visibility:hidden;pointer-events:none';
+document.body.appendChild(lvhSonde);
+function messeSchirm() {
+  var h = lvhSonde.getBoundingClientRect().height;
+  return h > 0 ? h : document.documentElement.clientHeight;
+}
+var vh = messeSchirm();
+var kopfBand = 36;      // Mitte der Wortmarke in der Kopfzeile, wird gemessen
+var gelandet = false;   // Landezustand mit Hysterese, siehe stand()
+
+/* ---------- Der Flug: Startzustand messen statt raten ----------
+   Der alte Wert s0 = min(0.92*innerWidth/163, 4.5) ergab rechnerisch 8,13,
+   gedeckelt auf 4,5 - die fliegende Marke war damit 734 px breit statt der
+   echten 575 und sass 79 px zu weit links. Die echte Ursache der 575 px ist
+   NICHT max-height:60svh (das greift bei diesem Seitenverhaeltnis nie),
+   sondern: width:min(92vw,900px) plus eine gemeinsame viewBox von rund 1570
+   Einheiten, die auf den laengsten Satz skaliert ist - der englische Satz
+   belegt darin nur rund 1003 Einheiten. */
+var flug = { bereit: false, sEnd: 0.3, x0: 0, y0: 0, x1: 0, y1: 0 };
+
+/* Abstand Oberkante -> Schriftgrundlinie, subpixelgenau: ein Inline-Block
+   ohne Hoehe sitzt genau auf der Grundlinie. */
+function grundlinie(el) {
+  var s = document.createElement('span');
+  s.style.cssText = 'display:inline-block;width:0;height:0;overflow:hidden';
+  el.appendChild(s);
+  var d = s.getBoundingClientRect().top - el.getBoundingClientRect().top;
+  el.removeChild(s);
+  return d;
+}
+
+function messeFlug() {
+  flug.bereit = false;
+  wmFlug.style.fontSize = '';                  // zurueck auf die 0.95rem aus dem CSS
+  var lage = saetze[BUEHNE.length - 1];
+  var svg = lage && lage.querySelector('svg');
+  var txt = lage && lage.querySelector('text');
+  if (!svg || !txt || !txt.getStartPositionOfChar) return;
+  var r = svg.getBoundingClientRect();
+  var vb = svg.viewBox && svg.viewBox.baseVal;
+  if (!r.width || !vb || !vb.width) return;
+  // preserveAspectRatio steht auf dem Vorgabewert "meet": der kleinere
+  // Faktor gewinnt, der Rest wird zentriert.
+  var mass = Math.min(r.width / vb.width, r.height / vb.height);
+  var innenX = r.left + (r.width  - vb.width  * mass) / 2;
+  var innenY = r.top  + (r.height - vb.height * mass) / 2;
+  var start, laenge;
+  // getStartPositionOfChar und die viewBox-Abbildung sind filterfest -
+  // getBoundingClientRect auf das <text> waere es nicht zwingend, und der
+  // Warp-Filter sitzt genau darum herum.
+  try { start = txt.getStartPositionOfChar(0); laenge = txt.getComputedTextLength(); }
+  catch (e) { return; }
+  if (!laenge) return;
+  var linksSvg = innenX + (start.x - vb.x) * mass;   // linke Kante der Glyphen
+  var basisSvg = innenY + (start.y - vb.y) * mass;   // Grundlinie auf der Buehne
+  var soll = laenge * mass;                          // Breite auf der Buehne, px
+
+  var altD = wmFlug.style.display, altT = wmFlug.style.transform;
+  wmFlug.style.display = 'block'; wmFlug.style.transform = 'none';
+  var basisBreite = wmFlug.getBoundingClientRect().width;    // bei 0.95rem
+  if (!basisBreite) { wmFlug.style.display = altD; wmFlug.style.transform = altT; return; }
+  // Die fliegende Marke wird so gross gesetzt, dass sie auf der Buehne in
+  // Massstab 1 steht und von dort nur noch kleiner wird. Verkleinern bleibt
+  // scharf, Vergroessern nicht.
+  wmFlug.style.fontSize = (0.95 * (soll / basisBreite)) + 'rem';
+  var grossBreite = wmFlug.getBoundingClientRect().width;
+  // Nachmessen statt hochrechnen: Systemschriften haben optische Groessen -
+  // SF Pro wechselt bei 20px von "Text" auf "Display" und laeuft dann enger.
+  // Die lineare Rechnung oben liegt dadurch bis zu 4 % daneben (gemessen:
+  // 212,4 statt 220,4 px), und genau das sah man als Restsprung im Moment der
+  // Uebergabe. Zwei Runden bringen es unter ein Pixel. Sobald Cooper Hewitt
+  // ausgeliefert wird, korrigieren die Runden schlicht nichts mehr.
+  for (var runde = 0; runde < 2 && grossBreite > 0; runde++) {
+    var istPx = parseFloat(getComputedStyle(wmFlug).fontSize);
+    wmFlug.style.fontSize = (istPx * (soll / grossBreite)) + 'px';
+    grossBreite = wmFlug.getBoundingClientRect().width;
+  }
+  var hoch = grundlinie(wmFlug);
+  wmFlug.style.display = altD; wmFlug.style.transform = altT;
+  if (!grossBreite) return;
+
+  var rz = kopfWm.getBoundingClientRect();      // Kopfzeile steht still -> echte Lage
+  if (!rz.width) return;
+  flug.sEnd = rz.width / grossBreite;           // Endmassstab, kleiner als 1
+  flug.x0 = linksSvg;                           // #wmFlug ist fixed: Viewport-Koordinaten
+  flug.y0 = basisSvg - hoch;                    // Grundlinie auf Grundlinie legen
+  flug.x1 = rz.left;
+  flug.y1 = rz.top;
+  flug.bereit = true;
+}
 
 function ease(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
 
 function stand() {
   var y = window.scrollY || window.pageYOffset;
-  var pos = y / vh;
+  var pos = (y - stapelTop) / vh;
   var n = BUEHNE.length;
 
-  // Flug der Wortmarke: zwischen Marke n-1 und n
+  // Flug der Wortmarke: Bildschirm n-1 -> n. Danach fliegt die Navigation
+  // ein, DANACH erst kommt der Vorhang von Kapitel 1 (n -> n+1).
   var p = Math.max(0, Math.min(1, pos - (n - 1)));
 
-  // Überblenden der Sprachen
+  // Kein Flug moeglich - reduzierte Bewegung ODER Messung fehlgeschlagen:
+  // dann wird sofort uebergeben. Ohne die Kopplung an flug.bereit blendete
+  // die Kreuzblende die grosse Wortmarke bei p=0.1 weg, waehrend die kleine
+  // erst bei p=0.99 erscheint - ein ganzer Bildschirm reines Gruen.
+  var sofort = REDUZIERT || !flug.bereit;
+  var uebergabe = sofort ? (p > 0 ? 1 : 0) : Math.min(1, p / 0.10);
+
+  // Ueberblenden der Sprachen
   for (var i = 0; i < n; i++) {
     var o;
     if (i === n - 1) {
-      // bleibt stehen bis zum Flug, dann übernimmt die fliegende Wortmarke
-      o = (p > 0.005) ? 0 : Math.max(0, Math.min(1, 1 - ((n - 1) - pos) * 1.8));
+      // blendet in die fliegende Wortmarke ueber, statt hart zu verschwinden:
+      // der harte Tausch tauschte gewellte SVG-Buchstaben gegen gerade
+      // HTML-Buchstaben, das zuckt selbst bei perfekter Geometrie.
+      o = Math.max(0, Math.min(1, 1 - ((n - 1) - pos) * 1.8)) * (1 - uebergabe);
     } else {
       o = Math.max(0, 1 - Math.abs(pos - i) * 1.8);
     }
     saetze[i].style.opacity = o;
   }
-  // Datum am unteren Rand: bleibt stehen und wandert mit dem Grün hinaus
+  // Datum am unteren Rand: bleibt stehen, bis der Vorhang es zudeckt
   introDatumEl.style.opacity = Math.max(0, Math.min(1, (pos - (n - 1.45)) * 2.4));
 
-  if (p > 0.005 && p < 0.995 && !REDUZIERT) {
+  // Hysterese: zwei Schwellen statt einer. 0,005 eines Bildschirms sind rund
+  // 4 px - ein Ruckler oder das Ein-/Ausklappen der Adressleiste liess sonst
+  // die vier gestaffelten Einflieger wiederholt raus- und wieder
+  // hereinfahren, genau auf dem Bildschirm, auf dem die Choreografie sitzt.
+  gelandet = sofort ? (p > 0)
+                    : (gelandet ? (p > 0.94) : (p >= 0.99));
+
+  if (p > 0 && !gelandet && flug.bereit) {
     var e = ease(p);
+    // Start und Ziel sind gemessen (siehe messeFlug), nicht geraten - und die
+    // Marke wird nur verkleinert: s laeuft von 1 nach flug.sEnd.
+    var s = 1 + (flug.sEnd - 1) * e;
     wmFlug.style.display = 'block';
-    var ziel = kopfWm.getBoundingClientRect();
-    var fw = wmFlug.offsetWidth, fh = wmFlug.offsetHeight;
-    var s0 = Math.min((0.92 * window.innerWidth) / fw, 4.5);
-    var s = s0 + (1 - s0) * e;
-    var x0 = (window.innerWidth - fw * s0) / 2;
-    var y0 = (vh - fh * s0) / 2;
-    var x = x0 + (ziel.left - x0) * e;
-    var yv = y0 + (ziel.top - y0) * e;
-    wmFlug.style.transform = 'translate(' + x + 'px,' + yv + 'px) scale(' + s + ')';
-    kopf.classList.remove('an');
-  } else if (p >= 0.995 || (REDUZIERT && p > 0)) {
-    wmFlug.style.display = 'none';
-    kopf.classList.add('an');
+    wmFlug.style.opacity = uebergabe;
+    wmFlug.style.transform =
+      'translate(' + (flug.x0 + (flug.x1 - flug.x0) * e) + 'px,' +
+                     (flug.y0 + (flug.y1 - flug.y0) * e) + 'px) scale(' + s + ')';
   } else {
     wmFlug.style.display = 'none';
-    kopf.classList.remove('an');
+  }
+
+  // Erst andocken (.wm), DANN fliegen die Bedienelemente ein (.nav, per CSS
+  // gestaffelt verzoegert). Nur bei Zustandswechsel schreiben - nicht in
+  // jedem Scroll-Frame.
+  if (kopf.classList.contains('wm') !== gelandet) {
+    kopf.classList.toggle('wm', gelandet);
+    kopf.classList.toggle('nav', gelandet);
+  }
+  // inert MUSS ausserhalb der Wechsel-Wache stehen. Beim ersten Lauf gibt es
+  // keinen Wechsel (Klasse fehlt UND gelandet ist false), der Block lief also
+  // nie - und der Kopf stand mit drei unsichtbaren, aber per Tab erreichbaren
+  // Knoepfen in der Fokusreihenfolge. Das Attribut im HTML deckt die Zeit vor
+  // dem ersten stand() ab, diese Zeile alles danach. Nur schreiben, wenn sich
+  // wirklich etwas aendert.
+  if ('inert' in HTMLElement.prototype && kopf.inert === gelandet) {
+    kopf.inert = !gelandet;
   }
 
   setzeTinte(y);
@@ -741,35 +961,108 @@ function stand() {
 window.addEventListener('scroll', stand, { passive: true });
 document.addEventListener('visibilitychange', stand);
 
-window.addEventListener('resize', function () {
-  vh = document.documentElement.clientHeight;
+/* Beim Drehen oder Fenstergroesse-Aendern muessen basis[], das Kopfband und
+   die Flug-Geometrie neu gemessen werden. Das reine Ein-/Ausklappen der
+   Adressleiste feuert zwar auch resize, aendert lvh aber NICHT - die Sonde
+   liefert denselben Wert, es wird nichts neu gerechnet, und nichts springt.
+   Wichtig, weil messeFlug den DOM anfasst und Layouts erzwingt: waehrend der
+   Toolbar-Animation kaeme sonst eine Serie teurer Messungen. */
+var letzteBreite = window.innerWidth;
+function neuVermessen(erzwinge) {
+  var neu = messeSchirm();
+  var breiteNeu = (window.innerWidth !== letzteBreite);
+  var hoeheNeu  = (Math.abs(neu - vh) > 0.5);
+  if (hoeheNeu) vh = neu;
+  if (erzwinge || breiteNeu || hoeheNeu) {
+    letzteBreite = window.innerWidth;
+    rechneBasis();
+    var rk = kopfWm.getBoundingClientRect();
+    kopfBand = rk.top + rk.height / 2;
+    messeFlug();
+  }
   requestAnimationFrame(stand);
-});
+}
+// bewusst gekapselt: der Hoerer wuerde sonst das Event als 'erzwinge' uebergeben
+window.addEventListener('resize', function () { neuVermessen(false); });
+window.addEventListener('orientationchange', function () { neuVermessen(false); });
 
 /* ---------- Kopfzeilen-Farbe und Anker-Ziele ----------
    Mit gestapelten sticky-Kapiteln taugen weder IntersectionObserver
    noch die Anker-Geometrie des Browsers: geklebte Kapitel liegen alle
    bei top 0. Beides wird deshalb aus der Scroll-Position gerechnet. */
-var kapitel = $$('.kap');
-// statische Snap-Marken für die Kapitel (siehe CSS-Kommentar bei .kap)
-(function () {
-  var stapel = $('#stapel');
-  kapitel.forEach(function (k, i) {
-    var m = document.createElement('div');
-    m.className = 'kmarke';
-    m.style.top = (i * 100) + 'svh';
-    stapel.appendChild(m);
+/* ---------- Der Stapel: EIN Mechanismus fuer Buehne und Kapitel ----------
+   Jedes Panel klebt bei top:0, bis das naechste als Vorhang darueberfaehrt.
+   data-halt sagt, wie viele Bildschirme ein Panel oben stehen bleibt:
+   Buehne 8 (7 Sprachen + 1 fuer den Flug), jedes Kapitel 1.
+   Die Verweilstrecke sind leere .luft-Bloecke im Fluss, die Snap-Punkte
+   absolute .marke - eine je Bildschirm, lueckenlos. Ergebnis: 14 Bildschirme,
+   14 Snap-Marken, ein Panel je Abschnitt.
+   ACHTUNG Reihenfolge: dieser Block MUSS nach dem HOERPROBE_AKTIV-Block
+   (Zeile 683-687) laufen, sonst zaehlt ein entferntes Kapitel mit und alles
+   verschiebt sich um einen Bildschirm. */
+var stapel = $('#stapel');
+var panels = $$('#stapel .kap');      // panels[0] ist die Buehne
+var kapitel = panels.slice(1);        // die sechs Farbkapitel - wie bisher
+var schirm = [], basis = [], stapelTop = 0, schirmeGesamt = 0;
+(function baueStapel() {
+  panels.forEach(function (el, i) {
+    schirm[i] = schirmeGesamt;
+    var halt = Math.max(1, parseInt(el.getAttribute('data-halt') || '1', 10));
+    schirmeGesamt += halt;
+    if (halt > 1) {
+      var f = document.createDocumentFragment();
+      for (var j = 1; j < halt; j++) {
+        var l = document.createElement('div');
+        l.className = 'luft';
+        f.appendChild(l);
+      }
+      el.after(f);
+    }
   });
+  for (var k = 0; k < schirmeGesamt; k++) {
+    var m = document.createElement('div');
+    m.className = 'marke';
+    m.style.top = (k * 100) + 'lvh';
+    stapel.appendChild(m);
+  }
+  // Ausgleich ganz am Ende des Flusses: verlaengert die Klebedauer des
+  // letzten Panels um (lvh - svh) und schiebt maxScroll ueber den letzten
+  // Snap-Punkt. Auf dem Desktop 0 px, also wirkungslos.
+  var schwanz = document.createElement('div');
+  schwanz.id = 'schwanz';
+  stapel.appendChild(schwanz);
 })();
-function kapitelOben(y) {
-  var introH = intro.offsetHeight;
-  if (y < introH - 1) return null;                       // noch auf der Bühne
-  var i = Math.floor((y - introH) / vh + 0.5);           // wer das obere Band füllt
-  return kapitel[Math.max(0, Math.min(kapitel.length - 1, i))];
+function rechneBasis() {
+  stapelTop = stapel.getBoundingClientRect().top + (window.scrollY || window.pageYOffset);
+  for (var i = 0; i < panels.length; i++) basis[i] = stapelTop + schirm[i] * vh;
 }
+/* Welches Panel liegt unter der WORTMARKE in der Kopfzeile? Der Vorhang
+   kommt von unten, die Kopfzeile erreicht die neue Farbe also erst am Ende
+   des Uebergangs - nicht auf halber Strecke, wie das alte '+ 0.5' es tat
+   (beim Uebergang Gruen -> Weiss haette die weisse Wortmarke sonst einen
+   halben Bildschirm lang auf Weiss gestanden).
+   kopfBand ist die gemessene MITTE von #kopfWm, nicht ein Bruchteil der
+   Kopfzeilenhoehe: kopf.offsetHeight * 0.6 sind rund 44 px, die Glyphen
+   liegen aber bei rund 28-45 px - der Wechsel kaeme zu frueh. */
+function panelOben(y) {
+  var k = 0;
+  for (var i = 0; i < basis.length; i++) if (y + kopfBand >= basis[i]) k = i;
+  return panels[k];
+}
+var letztesPanel = null;
+var metaThemeColor = document.querySelector('meta[name="theme-color"]');
 function setzeTinte(y) {
-  var k = kapitelOben(y);
-  document.documentElement.style.setProperty('--tinte', k ? k.getAttribute('data-tinte') : '#ffffff');
+  var p = panelOben(y);
+  if (p === letztesPanel) return;          // sonst zwei Style-Schreibvorgaenge je Frame
+  letztesPanel = p;
+  document.documentElement.style.setProperty('--tinte', p.getAttribute('data-tinte') || '#ffffff');
+  // Leinwandfarbe mitziehen: auf iOS zeigt das Gummiband an Anfang und Ende
+  // sonst den weissen body-Hintergrund unter einer farbigen Flaeche.
+  var grund = getComputedStyle(p).backgroundColor;
+  document.documentElement.style.backgroundColor = grund;
+  // Und dieselbe Farbe an iOS melden, sonst bleiben die Balken hinter
+  // Statusleiste und Adressleiste in der Farbe vom Seitenanfang stehen.
+  if (metaThemeColor) metaThemeColor.setAttribute('content', grund);
 }
 document.addEventListener('click', function (e) {
   var a = e.target && e.target.closest ? e.target.closest('a[href^="#"]') : null;
@@ -780,7 +1073,7 @@ document.addEventListener('click', function (e) {
   var idx = ziel ? kapitel.indexOf(ziel) : -1;
   if (idx < 0) return;
   e.preventDefault();
-  var ziel_y = intro.offsetHeight + idx * vh;
+  var ziel_y = basis[idx + 1];        // basis[0] ist die Buehne
   if (REDUZIERT || document.visibilityState === 'hidden') {
     // im versteckten Tab gibt es kein rAF und keine smooth-Scrolls: sofort
     // springen. Wichtig: 'instant', denn 'auto' hieße "nimm das CSS" und
@@ -946,14 +1239,24 @@ $$('dialog [data-zu]').forEach(function (b) {
 
 /* ---------- Start ---------- */
 wendeSpracheAn();
+neuVermessen(true);      // erzwingt die erste Messung: basis[], kopfBand, flug
 stand();
+/* Sobald eine Webschrift geladen ist, aendern sich alle Textbreiten: neu
+   messen, sonst kommt der Sprung der Wortmarke durch die Hintertuer zurueck,
+   sobald Cooper Hewitt eingeschaltet wird (Punkt 2 der Liste am Dateiende).
+   Ohne @font-face loest fonts.ready sofort auf - das kostet dann genau eine
+   ueberfluessige Messung. Ausdruecklich KEIN location.reload() hier: das
+   waere eine Endlosschleife. */
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(function () { messeFlug(); requestAnimationFrame(stand); });
+}
 // Deep-Link auf ein Kapitel: der Browser springt bei sticky-Kapiteln falsch,
 // deshalb einmal von Hand an die gerechnete Stelle.
 if (location.hash) {
   var ziel = document.querySelector(location.hash);
   if (ziel && kapitel.indexOf(ziel) >= 0) {
     requestAnimationFrame(function () {
-      window.scrollTo({ top: intro.offsetHeight + kapitel.indexOf(ziel) * vh, behavior: 'instant' });
+      window.scrollTo({ top: basis[kapitel.indexOf(ziel) + 1], behavior: 'instant' });
     });
   }
 }
