@@ -283,6 +283,22 @@ body {
 }
 .zeile { font-size: clamp(1.05rem, 2.8vw, 1.5rem); line-height: 1.7; }
 
+/* Line-up (Kapitel 3). Ein Name je Zeile, deutlich groesser als .zeile -
+   die Namen sind der Inhalt des Kapitels, nicht Beiwerk. Bewusst KEIN
+   text-transform: die Schreibweisen der Acts (.Umi., The Ante Dote) sind
+   Teil ihres Namens und wuerden in Versalien verfaelscht. */
+.lineup {
+  font-size: clamp(1.5rem, 5.2vw, 2.6rem);
+  font-weight: 700; line-height: 1.45; letter-spacing: -0.01em;
+  white-space: pre-line; margin: 2.4rem auto 0; max-width: 30rem;
+}
+/* Niedrige Displays (kleine Handys, Querformat): .kap schneidet ab
+   (overflow: hidden) - ein abgeschnittener Name waere ein echter Fehler.
+   Eine Stufe kleiner schafft Reserve fuer laengere Namen und Umbrueche. */
+@media (max-height: 640px) {
+  .lineup { font-size: 1.25rem; line-height: 1.4; margin-top: 1.6rem; }
+}
+
 /* Kapitel 1: die Illustration */
 /* ueberschreibt die Polsterung von .kap komplett, muss das Bodenpolster
    deshalb selbst mitbringen - sonst rutscht die Illustration auf dem Handy
@@ -463,7 +479,7 @@ noscript .njs {
     <div class="kap-inner">
       <div class="ueber" data-ueber="k3u"></div>
       <p class="zeile" data-t="k3text"></p>
-      <!-- NOCH ZU FÜLLEN: das Line-up. Kommt hierhin, wenn es steht. -->
+      <p class="lineup" data-t="k3lineup"></p>
     </div>
   </section>
 
@@ -598,6 +614,18 @@ var BUEHNE = [
 
 var INTRO_DATUM = '26.09.2026 · AMADEUS OLDENBURG';
 
+/* Das Line-up. Eigennamen, deshalb in beiden Sprachen dieselbe Liste -
+   einmal hier pflegen, statt zweimal in TEXTE. Reihenfolge wie von Felix
+   geliefert (04.09.2026); TBA ist der noch offene Slot. */
+var LINEUP = [
+  'Sibb',
+  'The Anté Dote',
+  'Zico',
+  'Queer Falafel',
+  'TBA',
+  '.Umi.'
+].join('\n');
+
 /* Alle Texte der Seite. Sichtbarer Text steht NUR hier
    (Ausnahme: die statische Teilen-Vorschau im <head> und die
    Rechtstexte in den Dialogen, die bleiben deutsch). */
@@ -608,8 +636,9 @@ var TEXTE = {
     navHoeren: 'Hören', navWannwo: 'Wann & Wo', navBisdahin: 'Bis dahin',
     k2u: 'UNTER DER ERDE',
     k2text: 'Pflanzen bilden Gemeinschaften. Unter der Erde sind sie verbunden und geben weiter, was sie haben.\n\nWir wollen einen Ort, an dem das auch für uns gilt.',
-    k3u: 'COMING SOON',
+    k3u: 'LINE-UP',
     k3text: 'Konzerte, Ausstellung, Performance.',
+    k3lineup: LINEUP,
     k4u: 'DER SOUND DER NATUR',
     tonAn: 'Ton an', tonAus: 'Ton aus', tonLaedt: 'Lädt …',
     tonFehlt: 'Die Aufnahme folgt.',
@@ -632,8 +661,9 @@ var TEXTE = {
     navHoeren: 'Listen', navWannwo: 'When & where', navBisdahin: 'Until then',
     k2u: 'UNDERGROUND',
     k2text: 'Plants live in communities. Below ground they are connected, and they pass on what they have.\n\nWe want a place where the same is true for us.',
-    k3u: 'COMING SOON',
+    k3u: 'LINE-UP',
     k3text: 'Concerts, exhibition, performance.',
+    k3lineup: LINEUP,
     k4u: 'THE SOUND OF NATURE',
     tonAn: 'Sound on', tonAus: 'Sound off', tonLaedt: 'Loading …',
     tonFehlt: 'The recording is on its way.',
@@ -1323,7 +1353,9 @@ NOCH ZU FÜLLEN
      Und die Sonderzeichen prüfen: Ü Ö Ć Ę Ś İ.
   3. ERLEDIGT 31.08.: og:image als teilen-vorschau.png (1200 × 630),
      gebaut aus Avenir Next Heavy. Neu bauen, sobald Cooper Hewitt da ist.
-  4. Line-up in Kapitel 3, sobald es steht.
+  4. ERLEDIGT 04.09.: Line-up in Kapitel 3 (Konstante LINEUP im
+     Script-Kopf, Ueberschrift von COMING SOON auf LINE-UP).
+     Offen: der TBA-Slot - Namen in LINEUP eintragen, sonst nichts.
   5. ERLEDIGT 31.08.: Impressum gefüllt (Felix Weckner, Staustraße 14,
      26122 Oldenburg, felix.weckner@gmail.com).
   6. ERLEDIGT 31.08.: Hoster GitHub Pages eingetragen, Entwurfs-Warnungen raus.
