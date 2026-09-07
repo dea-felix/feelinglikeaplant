@@ -269,6 +269,22 @@ body {
      absoluten .marke - eine je Bildschirm, fuer Buehne und Kapitel gleich. */
 }
 #stapel { position: relative; }
+
+/* Die Grundflaeche liegt fest im Bildschirm hinter dem ganzen Stapel und
+   traegt die Farbe des aktuellen Kapitels. Sie ist die Antwort auf Felix'
+   weisse Kante vom 07.09.: bis dahin faerbten wir nur zwei Dinge ein, die
+   theme-color-Meldung an iOS und den html-Hintergrund. Beides sind
+   Sonderflaechen, bei denen der Browser mitredet - der html-Hintergrund
+   erreicht z. B. den body nicht mehr, sobald der eine eigene overflow-Regel
+   hat, und genau die hat er hier. Was auf dem Schirm bleibt, ist Weiss.
+   Diese Flaeche redet mit niemandem: sie ist ein normales Element, sie
+   bedeckt den kompletten Bildschirm, und was auch immer im Stapel ein Loch
+   laesst, zeigt ab jetzt die Kapitelfarbe statt Weiss. */
+#grundflaeche {
+  position: fixed; inset: 0; z-index: -1;
+  background: var(--gruen);
+  pointer-events: none;
+}
 .bg-weiss  { background: var(--weiss);  color: var(--braun); --grund: var(--weiss); }
 .bg-sand   { background: var(--sand);   color: var(--braun); --grund: var(--sand); }
 .bg-rot    { background: var(--rot);    color: var(--weiss); --grund: var(--rot); }
@@ -499,7 +515,9 @@ noscript .njs {
        Sprachen + einer fuer den Flug der Wortmarke). Verweilstrecke
        (.luft), Snap-Marken (.marke) und der Ausgleich (#schwanz)
        entstehen ebenfalls im Skript. -->
-  <div id="stapel">
+  <div id="grundflaeche" aria-hidden="true"></div>
+
+<div id="stapel">
 
     <div class="kap" id="buehne" role="img" data-tinte="#ffffff" data-alabel="buehneLabel"></div>
 
@@ -1262,6 +1280,20 @@ function panelFlaeche(y) {
 }
 var letztesPanel = null, letzteFlaeche = null;
 var metaThemeColor = document.querySelector('meta[name="theme-color"]');
+var grundflaeche = document.getElementById('grundflaeche');
+/* theme-color als #rrggbb melden, nicht als "rgb(109, 158, 84)".
+   getComputedStyle liefert immer die rgb()-Schreibweise; erlaubt ist sie
+   laut Norm, aber sie ist der unueblichere Weg, und bei einer Angabe, die
+   der Browser nur einmal falsch liest, steht die Leiste bis zum naechsten
+   Wechsel auf der alten Farbe. Hex ist die Form, die jeder Browser seit je
+   nimmt - das kostet nichts und nimmt eine Fehlerquelle raus. */
+function alsHex(rgb) {
+  var m = /^rgba?\((\d+)[,\s]+(\d+)[,\s]+(\d+)/.exec(rgb || '');
+  if (!m) return rgb;
+  return '#' + [1, 2, 3].map(function (i) {
+    return ('0' + Number(m[i]).toString(16)).slice(-2);
+  }).join('');
+}
 function setzeTinte(y) {
   // Zwei getrennte Waechter, damit weiterhin nur bei echtem Wechsel
   // geschrieben wird - die Umschaltpunkte liegen jetzt aber auseinander.
@@ -1276,10 +1308,18 @@ function setzeTinte(y) {
     // Leinwandfarbe mitziehen: auf iOS zeigt das Gummiband an Anfang und Ende
     // sonst den Grund unter einer farbigen Flaeche.
     var grund = getComputedStyle(f).backgroundColor;
+    var hex = alsHex(grund);
+    // Jede Flaeche, die ueberhaupt zu erreichen ist, bekommt dieselbe Farbe.
+    // html: die Leinwand, sichtbar im Gummiband an Anfang und Ende.
+    // body: hat wegen overflow-x eine eigene Malflaeche und faengt sonst
+    //       nichts ab - bleibt er weiss, ist der Streifen weiss.
+    // grundflaeche: der feste Grund hinter dem Stapel (siehe CSS oben).
     document.documentElement.style.backgroundColor = grund;
+    document.body.style.backgroundColor = grund;
+    if (grundflaeche) grundflaeche.style.backgroundColor = grund;
     // Und dieselbe Farbe an iOS melden, sonst bleiben die Balken hinter
     // Statusleiste und Adressleiste in der Farbe vom Seitenanfang stehen.
-    if (metaThemeColor) metaThemeColor.setAttribute('content', grund);
+    if (metaThemeColor) metaThemeColor.setAttribute('content', hex);
   }
 }
 document.addEventListener('click', function (e) {
