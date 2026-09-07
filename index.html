@@ -58,6 +58,11 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html {
+  /* proximity heisst woertlich "schnapp nur, wenn du eh schon fast da bist" -
+     genau daher kam Felix' Klage vom 07.09.: "wenn ich nicht hoch genug
+     rutsche, rutscht es wieder runter". Auf dem Laptop ist das gewollt und
+     laut ihm "top", deshalb bleibt es hier stehen; auf Touch wird es weiter
+     unten auf mandatory gezogen. */
   scroll-snap-type: y proximity;
   scroll-behavior: smooth;
   /* Die Leinwandfarbe MUSS auf dem html stehen, nicht auf dem body. Hat das
@@ -283,6 +288,12 @@ body {
 }
 .zeile { font-size: clamp(1.05rem, 2.8vw, 1.5rem); line-height: 1.7; }
 
+/* Ein Kapitel, das nur aus Text besteht (Intro). Ohne Ueberschrift wuerde der
+   Absatz am oberen Rand des Innenbereichs kleben - hier sitzt er wirklich in
+   der Mitte der Flaeche, waagerecht wie senkrecht. */
+.nur-text { display: grid; place-items: center; min-height: 100%; }
+.nur-text .flz { text-align: center; }
+
 /* Line-up (Kapitel 3). Ein Name je Zeile, deutlich groesser als .zeile -
    die Namen sind der Inhalt des Kapitels, nicht Beiwerk. Bewusst KEIN
    text-transform: die Schreibweisen der Acts (.Umi., The Ante Dote) sind
@@ -328,12 +339,14 @@ body {
 
 /* Desktop: zwei Spalten, wo es trägt */
 @media (min-width: 1200px) {
-  #wurzeln .kap-inner, #wannundwo .kap-inner {
+  /* #wurzeln ist seit 07.09. raus: das Intro hat keine Ueberschrift mehr und
+     damit nur noch ein Kind - zwei Spalten haetten den Text nach links
+     geschoben, statt ihn zu zentrieren. */
+  #wannundwo .kap-inner {
     display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: center; gap: 3rem; text-align: left;
   }
-  #wurzeln .ueber svg, #wannundwo .ueber svg { margin: 0; width: 100%; }
-  #wurzeln .flz { margin: 0; }
+  #wannundwo .ueber svg { margin: 0; width: 100%; }
 }
 
 /* ---------- Dialoge (Impressum / Datenschutz) ---------- */
@@ -382,6 +395,16 @@ dialog .zu { margin-top: 1.2rem; }
 /* solange ein Dialog offen ist: Snap aus, sonst springt Chrome an den Seitenanfang */
 html.kein-snap { scroll-snap-type: none; scroll-behavior: auto; }
 
+/* Touch-Geraete: JEDES Loslassen landet auf einem Panel, nie dazwischen.
+   Das ist der Unterschied zwischen "die Karteikarte rutscht zurueck" und
+   "sie springt weiter". Bewusst nur hier: mit Maus und Trackpad ist
+   mandatory bevormundend, und dort war das Verhalten nie das Problem.
+   .kein-snap sticht das weiterhin aus (gleiche Spezifitaet, steht spaeter). */
+@media (hover: none) and (pointer: coarse) {
+  html { scroll-snap-type: y mandatory; }
+  html.kein-snap { scroll-snap-type: none; }
+}
+
 /* no-JS: das Nötigste bleibt lesbar */
 noscript .njs {
   display: grid; place-items: center; min-height: 100svh;
@@ -416,7 +439,6 @@ noscript .njs {
 <header id="kopf" inert>
   <span id="kopfWm" aria-label="Feeling like a plant">Feeling like a plant</span>
   <nav id="kopfNav" aria-label="Kapitel">
-    <a href="#anfang"    data-t="navAnfang"></a>
     <a href="#wurzeln"   data-t="navWurzeln"></a>
     <a href="#programm"  data-t="navProgramm"></a>
     <a href="#hoeren"    data-t="navHoeren"></a>
@@ -442,7 +464,6 @@ noscript .njs {
       <path d="M5 5l14 14M19 5L5 19"/>
     </svg>
   </button>
-  <a href="#anfang"    data-t="navAnfang"></a>
   <a href="#wurzeln"   data-t="navWurzeln"></a>
   <a href="#programm"  data-t="navProgramm"></a>
   <a href="#hoeren"    data-t="navHoeren"></a>
@@ -468,9 +489,11 @@ noscript .njs {
     <img src="illustration.webp" width="1400" height="1839" data-aalt="illuAlt" alt="">
   </section>
 
+  <!-- Kein .ueber mehr: die Ueberschrift "UNTER DER ERDE" ist am 07.09. auf
+       Felix' Wunsch raus. Der Text steht jetzt allein und mittig - in Hoehe
+       UND Breite, dafuer sorgt .nur-text unten im CSS. -->
   <section class="kap bg-sand" id="wurzeln" data-tinte="#563814">
-    <div class="kap-inner">
-      <div class="ueber" data-ueber="k2u"></div>
+    <div class="kap-inner nur-text">
       <p class="flz" data-t="k2text"></p>
     </div>
   </section>
@@ -598,18 +621,50 @@ noscript .njs {
 
 var HOERPROBE_AKTIV = true;   // false = Kapitel „Hörprobe" samt Navigationspunkt aus
 
-/* Die Bühne. Zeilen können dazukommen oder wegfallen, sonst ändert sich nichts.
-   ⚠️ Sprachliste ist ein Vorschlag, 5 von 7 Sätzen sind noch ungeprüft.
-   outline:true = braucht SVG-Umrisse, sobald Cooper Hewitt aktiv ist
-   (die Schrift hat kein Kyrillisch; der System-Fallback hat es). */
+/* Takt der Bühne, in Millisekunden. Die Sprachen laufen seit dem 07.09. über
+   die Zeit statt über den Scroll — vorher kostete jede Sprache einen ganzen
+   Bildschirm, bei 15 Sprachen wären das 16 gewesen.
+   Gesamtdauer = (Sprachen - 1) x (HALT + BLENDE), aktuell rund 9 Sekunden.
+   Wer vorher scrollt, springt sofort auf die letzte Zeile — der Durchlauf
+   hält niemanden fest. */
+var SPR_HALT  = 420;   // eine Sprache steht still
+var SPR_BLEND = 220;   // Kreuzblende zur nächsten
+
+/* Die Bühne. Zeilen können dazukommen oder wegfallen, sonst ändert sich nichts —
+   seit dem 07.09. kosten sie auch keinen Scroll mehr (sie laufen von allein
+   durch, siehe SPRACHTAKT weiter unten).
+
+   Wortlaut und Schreibweise sind die der GEDRUCKTEN KARTE, inklusive der
+   gemischten Groß-/Kleinschreibung: die ist dort Gestaltung, nicht Zufall.
+   Reihenfolge ebenfalls wie auf der Karte — nur Englisch ist ans Ende
+   gewandert, weil die Wortmarke, die danach in die Kopfzeile fliegt,
+   englisch ist. Die letzte Zeile MUSS also englisch bleiben (final: true).
+
+   ⚠️ Die arabische Zeile ist NICHT von der Karte abgelesen (das Foto gab die
+   diakritischen Punkte nicht her, und ب ت ث ن unterscheiden sich nur durch
+   die) — sie ist übersetzt. Wenn ein scharfes Foto der Karte auftaucht:
+   gegenlesen.
+
+   outline:true = braucht SVG-Umrisse, sobald Cooper Hewitt aktiv ist. Die
+   Schrift hat weder Kyrillisch noch Arabisch noch CJK; der System-Fallback
+   hat alles. Solange Cooper Hewitt fehlt, faellt ohnehin alles auf system-ui.
+   rtl:true = wird von rechts nach links gesetzt. */
 var BUEHNE = [
-  { lang: 'de',  text: 'SICH FÜHLEN WIE EINE PFLANZE',     sr: 'Sich fühlen wie eine Pflanze' },
-  { lang: 'nds', text: 'SIK FÖHLEN AS EN PLANT',           sr: 'Sik föhlen as en Plant' },
-  { lang: 'nl',  text: 'JE VOELEN ALS EEN PLANT',          sr: 'Je voelen als een plant' },
-  { lang: 'pl',  text: 'CZUĆ SIĘ JAK ROŚLINA',             sr: 'Czuć się jak roślina' },
-  { lang: 'tr',  text: 'KENDİNİ BİR BİTKİ GİBİ HİSSETMEK', sr: 'Kendini bir bitki gibi hissetmek' },
-  { lang: 'uk',  text: 'ПОЧУВАТИСЯ РОСЛИНОЮ',              sr: 'Почуватися рослиною', outline: true },
-  { lang: 'en',  text: 'FEELING LIKE A PLANT',             sr: 'Feeling like a plant', final: true }
+  { lang: 'ru',  text: 'Чувствую себя растением',        sr: 'Chuvstvuyu sebya rasteniem', outline: true },
+  { lang: 'nds', text: 'ik föhl mi as ´n plaant',        sr: 'Ik föhl mi as en Plaant' },
+  { lang: 'ku',  text: 'EZ XWE WEK RIWEKEKÊ HÎS DIKIM',  sr: 'Ez xwe wek riwekekê hîs dikim' },
+  { lang: 'fi',  text: 'Tunnen itseni kasviksi',         sr: 'Tunnen itseni kasviksi' },
+  { lang: 'uk',  text: 'Почуваюся рослиною',             sr: 'Pochuvayusya roslynoyu', outline: true },
+  { lang: 'es',  text: 'ME SIENTO COMO PLANTA',          sr: 'Me siento como planta' },
+  { lang: 'ar',  text: 'أشعر وكأنني نبتة',                sr: 'Ash\u2019ur wa-ka\u2019annani nabta', rtl: true, outline: true },
+  { lang: 'fr',  text: 'je me sens comme une plante',    sr: 'Je me sens comme une plante' },
+  { lang: 'it',  text: 'MI SENTO UNA PIANTA',            sr: 'Mi sento una pianta' },
+  { lang: 'zh',  text: '感觉自己像植物',                    sr: 'Ganjue ziji xiang zhiwu', outline: true },
+  { lang: 'de',  text: 'fühl mich wie ´ne pflanze',      sr: 'Fühl mich wie eine Pflanze' },
+  { lang: 'nl',  text: 'voel me als een plant',          sr: 'Voel me als een plant' },
+  { lang: 'ja',  text: '植物みたいな気分',                  sr: 'Shokubutsu mitai na kibun', outline: true },
+  { lang: 'tr',  text: 'Kendimi bitki gibi hissediyorum', sr: 'Kendimi bitki gibi hissediyorum' },
+  { lang: 'en',  text: 'FEELING LIKE A PLANT',           sr: 'Feeling like a plant', final: true }
 ];
 
 var INTRO_DATUM = '26.09.2026 · AMADEUS OLDENBURG';
@@ -632,11 +687,10 @@ var LINEUP = [
 var TEXTE = {
   de: {
     titel: 'Feeling like a plant. 26. September, Amadeus, Oldenburg',
-    navAnfang: 'Anfang', navWurzeln: 'Wurzeln', navProgramm: 'Programm',
+    navWurzeln: 'Intro', navProgramm: 'Programm',
     navHoeren: 'Hören', navWannwo: 'Wann & Wo', navBisdahin: 'Bis dahin',
-    k2u: 'UNTER DER ERDE',
     k2text: 'Pflanzen bilden Gemeinschaften. Unter der Erde sind sie verbunden und geben weiter, was sie haben.\n\nWir wollen einen Ort, an dem das auch für uns gilt.',
-    k3u: 'LINE-UP',
+    k3u: 'PROGRAMM',
     k3text: 'Konzerte, Ausstellung, Performance.',
     k3lineup: LINEUP,
     k4u: 'DER SOUND DER NATUR',
@@ -657,11 +711,10 @@ var TEXTE = {
   },
   en: {
     titel: 'Feeling like a plant. 26 September, Amadeus, Oldenburg',
-    navAnfang: 'Start', navWurzeln: 'Roots', navProgramm: 'Programme',
+    navWurzeln: 'Intro', navProgramm: 'Programme',
     navHoeren: 'Listen', navWannwo: 'When & where', navBisdahin: 'Until then',
-    k2u: 'UNDERGROUND',
     k2text: 'Plants live in communities. Below ground they are connected, and they pass on what they have.\n\nWe want a place where the same is true for us.',
-    k3u: 'LINE-UP',
+    k3u: 'PROGRAMME',
     k3text: 'Concerts, exhibition, performance.',
     k3lineup: LINEUP,
     k4u: 'THE SOUND OF NATURE',
@@ -771,6 +824,7 @@ var saetze = [], introDatumEl;
     var t = document.createElementNS(NS, 'text');
     t.setAttribute('font-size', '100');
     t.setAttribute('style', 'font-family:var(--schrift);font-weight:700;letter-spacing:-0.02em');
+    if (z.rtl) t.setAttribute('direction', 'rtl');
     t.textContent = z.text;
     messer.appendChild(t);
     var w = 600;
@@ -789,6 +843,11 @@ var saetze = [], introDatumEl;
     txt.setAttribute('font-size', '100');
     txt.setAttribute('y', '105');
     txt.setAttribute('x', String((maxW - breiten[i]) / 2));
+    // Arabisch laeuft von rechts nach links. Der Browser macht das ueber den
+    // Bidi-Algorithmus von allein richtig; direction festzuschreiben schadet
+    // nicht und schuetzt vor Ueberraschungen, wenn spaeter eine Zeile aus
+    // arabischem UND lateinischem Text besteht.
+    if (z.rtl) txt.setAttribute('direction', 'rtl');
     txt.textContent = z.text;
     if (!REDUZIERT) {
       var g = document.createElementNS(NS, 'g');
@@ -811,11 +870,22 @@ var saetze = [], introDatumEl;
   introDatumEl.textContent = INTRO_DATUM;
   buehne.appendChild(introDatumEl);
 
-  // Klebedauer der Buehne, in Bildschirmen: einer je Sprache plus EINER fuer
-  // den Flug der Wortmarke. Die 8 sind Pflicht, nicht Geschmack - mit 7
-  // liefe der Vorhang von Kapitel 1 auf demselben Bildschirm wie der Flug,
-  // und genau das soll er nicht. Kommt eine Sprache dazu, waechst es mit.
-  buehne.setAttribute('data-halt', String(BUEHNE.length + 1));
+  // Klebedauer der Buehne, in Bildschirmen. Bis zum 07.09. war das einer je
+  // Sprache plus einer fuer den Flug - bei 15 Sprachen waeren das 16 gewesen,
+  // und Felix' Beschwerde war schon bei 8 "brutal nervig".
+  //
+  // Jetzt ist es EINER, unabhaengig von der Zahl der Sprachen: auf demselben
+  // Bildschirm fliegt die Wortmarke hoch UND faehrt der Vorhang von Kapitel 1
+  // herauf. Der alte Kommentar hielt genau das fuer verboten - mit zwei
+  // Bildschirmen klebte die Buehne aber einen laenger, als sie Inhalt hat:
+  // Wortmarke schon weggeflogen, Vorhang noch nicht da, dazwischen ein
+  // ganzer Bildschirm leeres Gruen. Felix am 07.09.: "wenn ich weiter scrolle
+  // kommt eine leere gruene Seite ... dann als naechste Seite die mit dem
+  // Bild." Beides gleichzeitig sieht gut aus, weil die Marke nach OBEN geht
+  // und der Vorhang von UNTEN kommt - sie laufen auseinander, nicht gegen-
+  // einander. Die Sprachen kosten gar keinen Scroll mehr, sie laufen ueber
+  // die Zeit.
+  buehne.setAttribute('data-halt', '1');
 })();
 
 /* ---------- Hörprobe ggf. abschalten ---------- */
@@ -930,14 +1000,59 @@ function messeFlug() {
 
 function ease(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
 
+/* ---------- Der Sprachdurchlauf ----------
+   sprachZeit ist die verstrichene Zeit des Durchlaufs in Millisekunden.
+   Sprache i steht voll sichtbar bei i * TAKT und haelt SPR_HALT lang; davor
+   und danach liegt je eine Kreuzblende von SPR_BLEND. Die LETZTE Sprache
+   blendet nicht aus - sie bleibt stehen und wird spaeter von der fliegenden
+   Wortmarke abgeloest. */
+var SPR_TAKT = SPR_HALT + SPR_BLEND;
+var sprachZeit = 0, sprachAb = 0, sprachLaeuft = false;
+var sprachDauer = (BUEHNE.length - 1) * SPR_TAKT;
+
+function sprachDeckung(i, t) {
+  var d = t - i * SPR_TAKT;
+  if (d < -SPR_BLEND) return 0;                       // noch nicht dran
+  if (d < 0)          return 1 + d / SPR_BLEND;       // blendet ein
+  if (d <= SPR_HALT)  return 1;                       // steht
+  if (i === BUEHNE.length - 1) return 1;              // die letzte bleibt
+  if (d < SPR_HALT + SPR_BLEND) return 1 - (d - SPR_HALT) / SPR_BLEND;
+  return 0;
+}
+
+function sprachSchritt(t) {
+  if (!sprachLaeuft) return;
+  if (!sprachAb) sprachAb = t;
+  sprachZeit = t - sprachAb;
+  if (sprachZeit >= sprachDauer) { sprachZeit = sprachDauer; sprachLaeuft = false; }
+  stand();
+  if (sprachLaeuft) requestAnimationFrame(sprachSchritt);
+}
+
+function sprachDurchlauf() {
+  // Reduzierte Bewegung, oder die Seite wird nicht am Anfang betreten
+  // (Sprungmarke im Link, wiederhergestellte Scrollposition): kein Lauf,
+  // sofort die letzte Zeile.
+  var y = window.scrollY || window.pageYOffset;
+  if (REDUZIERT || y > 4) { sprachZeit = sprachDauer; stand(); return; }
+  sprachLaeuft = true; sprachAb = 0;
+  requestAnimationFrame(sprachSchritt);
+}
+
 function stand() {
   var y = window.scrollY || window.pageYOffset;
   var pos = (y - stapelTop) / vh;
   var n = BUEHNE.length;
 
-  // Flug der Wortmarke: Bildschirm n-1 -> n. Danach fliegt die Navigation
-  // ein, DANACH erst kommt der Vorhang von Kapitel 1 (n -> n+1).
-  var p = Math.max(0, Math.min(1, pos - (n - 1)));
+  // Wer scrollt, will weiter: der Durchlauf springt ans Ende, damit die
+  // ENGLISCHE Zeile fliegt und nicht zufaellig die, die gerade dran war.
+  if (pos > 0.02 && sprachZeit < sprachDauer) {
+    sprachZeit = sprachDauer; sprachLaeuft = false;
+  }
+
+  // Flug der Wortmarke: Bildschirm 0 -> 1. Danach fliegt die Navigation
+  // ein, DANACH erst kommt der Vorhang von Kapitel 1 (1 -> 2).
+  var p = Math.max(0, Math.min(1, pos));
 
   // Kein Flug moeglich - reduzierte Bewegung ODER Messung fehlgeschlagen:
   // dann wird sofort uebergeben. Ohne die Kopplung an flug.bereit blendete
@@ -946,21 +1061,19 @@ function stand() {
   var sofort = REDUZIERT || !flug.bereit;
   var uebergabe = sofort ? (p > 0 ? 1 : 0) : Math.min(1, p / 0.10);
 
-  // Ueberblenden der Sprachen
+  // Ueberblenden der Sprachen - jetzt aus der ZEIT, nicht aus dem Scroll.
   for (var i = 0; i < n; i++) {
-    var o;
-    if (i === n - 1) {
-      // blendet in die fliegende Wortmarke ueber, statt hart zu verschwinden:
-      // der harte Tausch tauschte gewellte SVG-Buchstaben gegen gerade
-      // HTML-Buchstaben, das zuckt selbst bei perfekter Geometrie.
-      o = Math.max(0, Math.min(1, 1 - ((n - 1) - pos) * 1.8)) * (1 - uebergabe);
-    } else {
-      o = Math.max(0, 1 - Math.abs(pos - i) * 1.8);
-    }
+    var o = sprachDeckung(i, sprachZeit);
+    // Die letzte blendet zusaetzlich in die fliegende Wortmarke ueber, statt
+    // hart zu verschwinden: der harte Tausch tauschte gewellte SVG-Buchstaben
+    // gegen gerade HTML-Buchstaben, das zuckt selbst bei perfekter Geometrie.
+    if (i === n - 1) o *= (1 - uebergabe);
     saetze[i].style.opacity = o;
   }
-  // Datum am unteren Rand: bleibt stehen, bis der Vorhang es zudeckt
-  introDatumEl.style.opacity = Math.max(0, Math.min(1, (pos - (n - 1.45)) * 2.4));
+  // Datum am unteren Rand: kommt zum Ende des Durchlaufs und bleibt stehen,
+  // bis der Vorhang es zudeckt.
+  introDatumEl.style.opacity =
+    Math.max(0, Math.min(1, (sprachZeit - (sprachDauer - 1.2 * SPR_TAKT)) / SPR_TAKT));
 
   // Hysterese: zwei Schwellen statt einer. 0,005 eines Bildschirms sind rund
   // 4 px - ein Ruckler oder das Ein-/Ausklappen der Adressleiste liess sonst
@@ -1005,6 +1118,28 @@ function stand() {
 
 window.addEventListener('scroll', stand, { passive: true });
 document.addEventListener('visibilitychange', stand);
+
+/* ---------- Nachziehen, wenn das Scrollen zur Ruhe kommt ----------
+   Der Grund fuer Felix' gruene Balken vom 07.09.: theme-color faerbt auf iOS
+   die Flaechen hinter Statusleiste und Adressleiste. Nachgezogen wird sie in
+   setzeTinte() - aber nur aus dem scroll-Event heraus, und genau das feuert
+   iOS Safari waehrend des Schwung-Scrollens gedrosselt und nach dem
+   Einrasten von scroll-snap unter Umstaenden gar nicht mehr. Der letzte
+   gesehene Wert war dann der von VOR dem Snap: Kapitel weiss, Leisten gruen.
+
+   Deshalb hier zwei Netze, die einander nicht ausschliessen:
+   1. scrollend - das richtige Ereignis, gibt es aber erst ab iOS 17.
+   2. ein Nachschlag 180 ms nach dem letzten scroll-Event, fuer alles aeltere.
+      Kostet nichts: stand() schreibt ohnehin nur bei echtem Wechsel. */
+var ruheUhr = null;
+function nachRuhe() {
+  clearTimeout(ruheUhr);
+  ruheUhr = setTimeout(stand, 180);
+}
+window.addEventListener('scroll', nachRuhe, { passive: true });
+if ('onscrollend' in window) {
+  window.addEventListener('scrollend', stand, { passive: true });
+}
 
 /* Beim Drehen oder Fenstergroesse-Aendern muessen basis[], das Kopfband und
    die Flug-Geometrie neu gemessen werden. Das reine Ein-/Ausklappen der
@@ -1339,6 +1474,10 @@ if (location.hash) {
     });
   }
 }
+/* Die Sprachen loslaufen lassen. Erst im naechsten Frame, damit ein
+   Deep-Link (oben) seine Sprungmarke schon gesetzt hat - sprachDurchlauf()
+   prueft die Scrollposition und laesst den Lauf dann aus. */
+requestAnimationFrame(sprachDurchlauf);
 </script>
 
 <!-- ============================================================
