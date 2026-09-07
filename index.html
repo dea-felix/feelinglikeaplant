@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -570,7 +570,9 @@ noscript .njs {
         <p class="zeile" data-t="k5z1"></p>
         <p class="zeile" data-t="k5z2"></p>
         <p class="zeile" data-t="k5z3"></p>
+        <p class="zeile" data-t="k5z4"></p>
         <p class="klein" style="margin-top:0.8rem">Mottenstraße 21, 26122 Oldenburg</p>
+        <p class="klein" data-t="k5schuhe" style="margin-top:0.5rem"></p>
         <div class="knopfstapel">
           <a class="knopf" href="https://www.google.com/maps/search/?api=1&query=Amadeus%20Mottenstra%C3%9Fe%2021%2026122%20Oldenburg"
              target="_blank" rel="noopener"><span data-t="anfahrt"></span></a>
@@ -731,6 +733,8 @@ var TEXTE = {
     tonFehlt: 'Die Aufnahme folgt.',
     k5u: 'WANN UND WO',
     k5z1: 'Samstag, 26. September 2026.', k5z2: 'Amadeus, Oldenburg.', k5z3: 'Einlass 17 Uhr.',
+    k5z4: 'Nur Abendkasse.',
+    k5schuhe: 'Bring gern Hausschuhe mit.',
     anfahrt: 'Route planen',
     kalender: 'In den Kalender', teilen: 'Weitersagen',
     k6u: 'BIS DAHIN',
@@ -757,6 +761,8 @@ var TEXTE = {
     tonFehlt: 'The recording is on its way.',
     k5u: 'WHEN AND WHERE',
     k5z1: 'Saturday, 26 September 2026.', k5z2: 'Amadeus, Oldenburg.', k5z3: 'Doors 5 pm.',
+    k5z4: 'Cash at the door only.',
+    k5schuhe: 'Feel free to bring slippers.',
     anfahrt: 'Get directions',
     kalender: 'Add to calendar', teilen: 'Pass it on',
     k6u: 'UNTIL THEN',
@@ -794,7 +800,10 @@ var sprache = (function () {
     var s = localStorage.getItem('flp-lang');
     if (s === 'de' || s === 'en') return s;
   } catch (e) {}
-  return (navigator.language || 'de').slice(0, 2) === 'en' ? 'en' : 'de';
+  /* Standard ist Englisch (Felix, 07.09.: "standardmaessig auf englisch,
+     auf deutsch kann man oben umstellen"). Wer schon einmal umgestellt hat,
+     bekommt oben aus dem Speicher seine Wahl zurueck - die schlaegt das hier. */
+  return 'en';
 })();
 
 /* ---------- Überschriften als gewellter SVG-Text ---------- */
@@ -1279,8 +1288,22 @@ function panelFlaeche(y) {
   return panels[k];
 }
 var letztesPanel = null, letzteFlaeche = null;
-var metaThemeColor = document.querySelector('meta[name="theme-color"]');
 var grundflaeche = document.getElementById('grundflaeche');
+/* iOS liest die theme-color EINMAL beim Laden und danach nie wieder, wenn man
+   nur das content-Attribut aendert. Belegt am 07.09. mit fuenf Fotos von
+   Felix' iPhone: Statusleiste ueber der roten, der braunen, der blauen und
+   der orangenen Seite stand ueberall auf dem Startwert Gruen, waehrend am Mac
+   in denselben Kapiteln der richtige Wert im Attribut stand. Ein neues
+   Element zwingt Safari zum Neulesen - deshalb wird das meta hier ersetzt
+   statt beschrieben. Kostet nichts: passiert nur beim Kapitelwechsel. */
+function meldeFarbe(hex) {
+  var alt = document.querySelector('meta[name="theme-color"]');
+  if (alt) alt.parentNode.removeChild(alt);
+  var neu = document.createElement('meta');
+  neu.setAttribute('name', 'theme-color');
+  neu.setAttribute('content', hex);
+  document.head.appendChild(neu);
+}
 /* theme-color als #rrggbb melden, nicht als "rgb(109, 158, 84)".
    getComputedStyle liefert immer die rgb()-Schreibweise; erlaubt ist sie
    laut Norm, aber sie ist der unueblichere Weg, und bei einer Angabe, die
@@ -1319,7 +1342,7 @@ function setzeTinte(y) {
     if (grundflaeche) grundflaeche.style.backgroundColor = grund;
     // Und dieselbe Farbe an iOS melden, sonst bleiben die Balken hinter
     // Statusleiste und Adressleiste in der Farbe vom Seitenanfang stehen.
-    if (metaThemeColor) metaThemeColor.setAttribute('content', hex);
+    meldeFarbe(hex);
   }
 }
 document.addEventListener('click', function (e) {
