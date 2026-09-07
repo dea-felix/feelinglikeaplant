@@ -131,10 +131,11 @@ body {
 }
 /* Verzoegerung NUR im .nav-Zustand: beim Zurueckscrollen fliegen sie sofort
    wieder raus, statt traege nachzuhinken. */
-#kopf.nav #kopfNav       { transition-delay: .10s; }
-#kopf.nav #btnTeilenKopf { transition-delay: .16s; }
-#kopf.nav #btnSprache    { transition-delay: .22s; }
-#kopf.nav #btnBurger     { transition-delay: .28s; }
+#kopf.nav #kopfNav        { transition-delay: .10s; }
+#kopf.nav #btnKalenderKopf{ transition-delay: .16s; }
+#kopf.nav #btnTeilenKopf  { transition-delay: .20s; }
+#kopf.nav #btnSprache     { transition-delay: .24s; }
+#kopf.nav #btnBurger      { transition-delay: .28s; }
 #kopfNav { display: none; gap: clamp(0.7rem, 1.6vw, 1.4rem); margin-left: auto; }
 #kopfNav a {
   color: inherit; text-decoration: none; font-weight: 700;
@@ -333,6 +334,15 @@ body {
 .knopf:hover span, .knopf:focus-visible span { color: var(--grund, var(--weiss)); }
 .knopf span { pointer-events: none; color: inherit; }
 
+/* Die drei Knoepfe stehen untereinander statt nebeneinander (07.09.).
+   Gleiche Breite, damit die Kante stimmt - nebeneinander brachen sie am
+   Handy ohnehin um und die Zeilen wurden ungleich lang. */
+.knopfstapel {
+  margin-top: 1.4rem;
+  display: flex; flex-direction: column; align-items: center; gap: 0.6rem;
+}
+.knopfstapel .knopf { width: min(100%, 20rem); margin: 0; }
+
 .klein { font-size: 0.85rem; opacity: 0.85; }
 .kleinlinks { margin-top: 1.6rem; }
 .kleinlinks a { color: inherit; }
@@ -347,6 +357,9 @@ body {
     align-items: center; gap: 3rem; text-align: left;
   }
   #wannundwo .ueber svg { margin: 0; width: 100%; }
+  /* In zwei Spalten steht der Text linksbuendig - die Knoepfe muessen an
+     derselben Kante anfangen, sonst haengen sie mitten in der Spalte. */
+  #wannundwo .knopfstapel { align-items: flex-start; }
 }
 
 /* ---------- Dialoge (Impressum / Datenschutz) ---------- */
@@ -386,7 +399,7 @@ dialog .zu { margin-top: 1.2rem; }
      UND gleichzeitig tot ueber dem gruenen Intro - #kopf hat
      pointer-events:none, freigeschaltet wird nur unter '#kopf.nav'. */
   #kopf, #kopfNav, #kopf .kopf-knopf { transition: none; }
-  #kopf.nav #kopfNav, #kopf.nav #btnTeilenKopf,
+  #kopf.nav #kopfNav, #kopf.nav #btnKalenderKopf, #kopf.nav #btnTeilenKopf,
   #kopf.nav #btnSprache, #kopf.nav #btnBurger { transition-delay: 0s; }
   .satz, #introDatum { transition: none; }
   svg animate { display: none; }
@@ -445,6 +458,11 @@ noscript .njs {
     <a href="#wannundwo" data-t="navWannwo"></a>
     <a href="#bisdahin"  data-t="navBisdahin"></a>
   </nav>
+  <button class="kopf-knopf" id="btnKalenderKopf" data-alabel="kalenderLabel">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>
+    </svg>
+  </button>
   <button class="kopf-knopf" id="btnTeilenKopf" data-alabel="teilenLabel">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M12 3v13M7 8l5-5 5 5M5 14v6h14v-6"/>
@@ -509,12 +527,10 @@ noscript .njs {
   <section class="kap bg-blau" id="hoeren" data-tinte="#ffffff">
     <div class="kap-inner">
       <div class="ueber" data-ueber="k4u"></div>
-      <!-- Ohne Fliesstext (die beiden Zeilen sind am 01.09. auf Felix'
-           Wunsch raus) steht der Knopf direkt unter der Ueberschrift. Die
-           1,4rem von vorher waren der Abstand ZU den Zeilen und sind hier
-           zu eng - 2,6rem entspricht dem Abstand, den die uebrigen Kapitel
-           zwischen Ueberschrift und Inhalt haben. -->
-      <p style="margin-top:2.6rem">
+      <!-- Seit 07.09. steht hier wieder ein Text - der kurze Lexikoneintrag
+           zum Puls der Pflanze. Der Knopf rueckt darunter. -->
+      <p class="flz" data-t="k4text" style="margin-top:1.6rem"></p>
+      <p style="margin-top:1.8rem">
         <button class="knopf" id="btnTon"><span data-t="tonAn"></span></button>
       </p>
       <p class="klein" id="tonHinweis" hidden data-t="tonFehlt"></p>
@@ -537,14 +553,12 @@ noscript .njs {
         <p class="zeile" data-t="k5z2"></p>
         <p class="zeile" data-t="k5z3"></p>
         <p class="klein" style="margin-top:0.8rem">Mottenstraße 21, 26122 Oldenburg</p>
-        <p style="margin-top:1.2rem">
+        <div class="knopfstapel">
           <a class="knopf" href="https://www.google.com/maps/search/?api=1&query=Amadeus%20Mottenstra%C3%9Fe%2021%2026122%20Oldenburg"
              target="_blank" rel="noopener"><span data-t="anfahrt"></span></a>
-        </p>
-        <p>
           <button class="knopf" id="btnKalender1"><span data-t="kalender"></span></button>
           <button class="knopf" id="btnTeilen1"><span data-t="teilen"></span></button>
-        </p>
+        </div>
       </div>
     </div>
   </section>
@@ -693,7 +707,8 @@ var TEXTE = {
     k3u: 'PROGRAMM',
     k3text: 'Konzerte, Ausstellung, Performance.',
     k3lineup: LINEUP,
-    k4u: 'DER SOUND DER NATUR',
+    k4u: 'PLYNTHI',
+    k4text: 'Zwischen zwei Blättern liegt eine Spannung. Sie schwankt — mit dem Licht, mit dem Wasser, mit jeder Berührung. Ein Gerät nimmt diese Schwankung ab und übersetzt sie in Töne.\n\nNichts daran ist ausgedacht. Was du hörst, ist der Puls einer Pflanze.',
     tonAn: 'Ton an', tonAus: 'Ton aus', tonLaedt: 'Lädt …',
     tonFehlt: 'Die Aufnahme folgt.',
     k5u: 'WANN UND WO',
@@ -706,7 +721,8 @@ var TEXTE = {
     kopiert: 'Link kopiert.',
     illuAlt: 'Gezeichneter Kopf mit geschlossenen Augen, in Blau, Grün und Ocker. Oben aus dem Schädel wächst ein Stängel mit großen grünen und braunen Blättern. Dünne wurzelartige Linien laufen nach unten weg.',
     buehneLabel: 'Derselbe Satz in mehreren Sprachen: Sich fühlen wie eine Pflanze. Zum Weiterlesen scrollen.',
-    teilenLabel: 'Diese Seite teilen', menueLabel: 'Menü öffnen',
+    teilenLabel: 'Diese Seite teilen', kalenderLabel: 'In den Kalender eintragen',
+    menueLabel: 'Menü öffnen',
     menueZuLabel: 'Menü schließen'
   },
   en: {
@@ -717,7 +733,8 @@ var TEXTE = {
     k3u: 'PROGRAMME',
     k3text: 'Concerts, exhibition, performance.',
     k3lineup: LINEUP,
-    k4u: 'THE SOUND OF NATURE',
+    k4u: 'PLYNTHI',
+    k4text: 'Between two leaves there is a voltage. It shifts — with the light, with the water, with every touch. A device picks that up and turns it into sound.\n\nNone of it is made up. What you hear is the pulse of a plant.',
     tonAn: 'Sound on', tonAus: 'Sound off', tonLaedt: 'Loading …',
     tonFehlt: 'The recording is on its way.',
     k5u: 'WHEN AND WHERE',
@@ -730,7 +747,8 @@ var TEXTE = {
     kopiert: 'Link copied.',
     illuAlt: 'A drawn head with closed eyes, painted in blue, green and ochre. A stem grows out of the top of the skull, carrying large green and brown leaves. Thin root like lines run downward.',
     buehneLabel: 'The same sentence in several languages: feeling like a plant. Scroll to continue.',
-    teilenLabel: 'Share this page', menueLabel: 'Open the menu',
+    teilenLabel: 'Share this page', kalenderLabel: 'Add to calendar',
+    menueLabel: 'Open the menu',
     menueZuLabel: 'Close the menu'
   }
 };
@@ -1391,7 +1409,7 @@ function kalender() {
   a.click();
   setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 800);
 }
-['btnKalender1', 'btnKalender2'].forEach(function (id) {
+['btnKalender1', 'btnKalender2', 'btnKalenderKopf'].forEach(function (id) {
   var b = $('#' + id); if (b) b.addEventListener('click', kalender);
 });
 
