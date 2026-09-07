@@ -316,9 +316,78 @@ body {
    text-transform: die Schreibweisen der Acts (.Umi., The Ante Dote) sind
    Teil ihres Namens und wuerden in Versalien verfaelscht. */
 .lineup {
+  list-style: none;
   font-size: clamp(1.5rem, 5.2vw, 2.6rem);
   font-weight: 700; line-height: 1.45; letter-spacing: -0.01em;
-  white-space: pre-line; margin: 2.4rem auto 0; max-width: 30rem;
+  margin: 2.4rem auto 0; max-width: 30rem;
+}
+/* Anklickbar sind nur die Acts, zu denen es schon eine Seite gibt. Die
+   uebrigen stehen als reiner Text da - so waechst die Liste einfach mit,
+   wenn Material nachkommt, ohne dass jemand auf eine leere Seite laeuft. */
+.lineup a {
+  color: inherit; text-decoration: none;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.45);
+}
+.lineup a:hover, .lineup a:focus-visible { border-bottom-color: currentColor; }
+
+/* ---------- Act-Seiten ----------
+   Keine eigenen Dateien, sondern eine Ansicht UEBER der Seite. Eigene
+   Dateien haetten Sprachumschaltung, Teilen-Funktion und den ganzen
+   Scroll-Stapel doppelt gebraucht. Eine eigene Adresse hat trotzdem jeder
+   Act (#act/umi), damit man sie verschicken kann.
+   z-index 90: ueber Kopfzeile (60), Wortmarken-Flug (65), Menue (70) und
+   Toast (80) - die Act-Seite ist die oberste Ebene. */
+#actseite {
+  position: fixed; inset: 0; z-index: 90;
+  background: var(--rot); color: var(--weiss); --grund: var(--rot);
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  /* damit das Wischen am Ende nicht die Seite dahinter mitzieht */
+  overscroll-behavior: contain;
+}
+#actseite[hidden] { display: none; }
+.act-zurueck {
+  position: fixed; z-index: 2;
+  top: max(0.9rem, env(safe-area-inset-top));
+  left: max(0.9rem, env(safe-area-inset-left));
+  width: 44px; height: 44px;
+  background: none; border: none; color: var(--weiss); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.act-innen {
+  max-width: 1100px; margin: 0 auto;
+  padding: max(4.5rem, env(safe-area-inset-top) + 3.5rem) 6vw
+           calc(4rem + env(safe-area-inset-bottom));
+}
+.act-bild {
+  width: 100%; aspect-ratio: 4 / 5; overflow: hidden;
+  background: rgba(255, 255, 255, 0.12);
+  display: grid; place-items: center;
+}
+.act-bild img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Platzhalter, solange ein Foto fehlt: die Flaeche steht schon in der
+   richtigen Groesse, damit sich beim Nachliefern nichts verschiebt. */
+.act-bild .fehlt { font-size: 0.85rem; opacity: 0.85; padding: 1rem; text-align: center; }
+.act-name {
+  font-size: clamp(1.8rem, 6vw, 2.8rem); font-weight: 700;
+  letter-spacing: -0.02em; margin: 1.8rem 0 1.1rem;
+}
+.act-text p { font-size: clamp(1rem, 2.4vw, 1.12rem); line-height: 1.62; margin-bottom: 1rem; }
+.act-text .zitat  { font-style: italic; }
+.act-text .quelle { font-size: 0.85rem; opacity: 0.85; margin-top: -0.6rem; }
+.act-knopf { margin-top: 1rem; text-align: center; }
+
+@media (min-width: 900px) {
+  /* Zwei Spalten: Bild links, Text rechts und linksbuendig. Das Bild bleibt
+     stehen, gescrollt wird nur der Text (Felix, 07.09.). */
+  .act-innen {
+    display: grid; grid-template-columns: minmax(0, 40%) minmax(0, 1fr);
+    gap: 3.2rem; align-items: start;
+  }
+  .act-bildspalte { position: sticky; top: max(4.5rem, env(safe-area-inset-top) + 3.5rem); }
+  .act-textspalte { text-align: left; }
+  .act-name { margin-top: 0; }
+  .act-knopf { text-align: left; }
+  .act-knopf .knopf { margin-left: 0; }
 }
 /* Niedrige Displays (kleine Handys, Querformat): .kap schneidet ab
    (overflow: hidden) - ein abgeschnittener Name waere ein echter Fehler.
@@ -517,6 +586,25 @@ noscript .njs {
        entstehen ebenfalls im Skript. -->
   <div id="grundflaeche" aria-hidden="true"></div>
 
+<!-- Act-Seite: wird aus ACTS gefuellt, siehe Skript weiter unten. -->
+<div id="actseite" hidden aria-hidden="true">
+  <button class="act-zurueck" id="actZurueck" data-alabel="zurueckLabel">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M15 5l-7 7 7 7"/>
+    </svg>
+  </button>
+  <div class="act-innen">
+    <div class="act-bildspalte">
+      <div class="act-bild" id="actBild"></div>
+      <div class="act-knopf" id="actKnopf"></div>
+    </div>
+    <div class="act-textspalte">
+      <h2 class="act-name" id="actName"></h2>
+      <div class="act-text" id="actText"></div>
+    </div>
+  </div>
+</div>
+
 <div id="stapel">
 
     <div class="kap" id="buehne" role="img" data-tinte="#ffffff" data-alabel="buehneLabel"></div>
@@ -538,7 +626,7 @@ noscript .njs {
     <div class="kap-inner">
       <div class="ueber" data-ueber="k3u"></div>
       <p class="zeile" data-t="k3text"></p>
-      <p class="lineup" data-t="k3lineup"></p>
+      <ul class="lineup" id="lineup"></ul>
     </div>
   </section>
 
@@ -705,15 +793,56 @@ var INTRO_DATUM = '26.09.2026 · AMADEUS OLDENBURG';
 
 /* Das Line-up. Eigennamen, deshalb in beiden Sprachen dieselbe Liste -
    einmal hier pflegen, statt zweimal in TEXTE. Reihenfolge wie von Felix
-   geliefert (04.09.2026); TBA ist der noch offene Slot. */
-var LINEUP = [
-  'Sibb',
-  'The Anté Dote',
-  'Zico',
-  'Queer Falafel',
-  'TBA',
-  '.Umi.'
-].join('\n');
+   geliefert (04.09.2026); TBA ist der noch offene Slot.
+
+   Wer ein 'slug' hat, bekommt eine eigene Seite und wird im Line-up
+   anklickbar. Wer keins hat, steht als reiner Text da - so laeuft niemand
+   auf eine leere Seite, und ein Act wird angeschlossen, indem man ihm hier
+   slug/bild/text/link gibt. Mehr ist nicht noetig.
+
+   'bild: null' heisst: Foto fehlt noch. Die Flaeche steht trotzdem in der
+   richtigen Groesse, damit sich beim Nachliefern nichts verschiebt.
+
+   Die englischen Texte stehen bewusst in BEIDEN Sprachfassungen: Anté und
+   Queer Falafel haben ihre Texte selbst so geschrieben, eine Uebersetzung
+   waere eine Umschreibung (entschieden mit Felix am 07.09.). */
+var ACTS = [
+  { name: 'Sibb' },
+
+  { name: 'The Anté Dote', slug: 'ante-dote',
+    bild: { datei: 'artists/the-ante-dote.jpg', alt: 'The Anté Dote' },
+    link: { url: 'https://ante-dote.net', text: 'ante-dote.net' },
+    text: [
+      ['zitat',  '„The Anté Dote doesn\u2019t just raise his voice \u2014 he sharpens it into a tool for survival, protest and empowerment. Expect fast-tongued truths, punchlines that sting, and poetry laced with politics, love and (com)passion, crafted for those who know that silence is never neutral."'],
+      ['quelle', '\u2014 Bucht Der Träumer Festival'],
+      ['',       'Hmmm. Probably fair, except that he believes truths are often better delivered slow, the punchlines do not always sting (they sometimes hug), and your silence can indeed be neutral. But only when you\u2019re dead.'],
+      ['',       'A „spoken-word artist" from Scotland with diverse African roots, Anté prefers to think of himself as a story-teller, with the only requirement being that the stories are always true (regardless of whether they happened or not), beautiful (at least in the eye of the beholding story-teller), and open to interpretation (at least in the mind of the receptive listener).']
+    ] },
+
+  { name: 'Zico' },
+
+  { name: 'Queer Falafel', slug: 'queer-falafel',
+    bild: { datei: 'artists/queer-falafel.jpg', alt: 'Queer Falafel' },
+    link: null,
+    text: [
+      ['', 'Queer Falafel, Lebanese Genderfuck, roaming around the globe.'],
+      ['', 'Denouncing white supremacy and euro-centric colonialism\u2019s history / present.'],
+      ['', 'Intersecting visuals, live music, performance and text.'],
+      ['', 'Projecting their imposed discriminations onto your awarded privileges.'],
+      ['', 'Dismantling neo-liberalism and blonde dreadlocks.'],
+      ['', 'Free Palestine.']
+    ] },
+
+  { name: 'TBA' },
+
+  { name: '.Umi.', slug: 'umi',
+    bild: null,
+    link: { url: 'https://soundcloud.com/y_umi', text: 'SoundCloud' },
+    text: {
+      de: [['', '.Umi. ist eine DJ aus Bremen, die es liebt, durch verschiedene Genres zu navigieren, um Tracks zu entdecken, mit denen sie sich verbunden fühlt. Als leidenschaftliche Musikliebhaberin verbindet sie in ihrem eklektischen Sound basslastige Beats mit afrikanischen Rhythmen, den sie als afro-infused bass music beschreibt.']],
+      en: [['', '.Umi. is a Bremen-based DJ who loves navigating through different genres to uncover tracks she connects with. A passionate music lover, she blends bass-heavy beats with African rhythms into an eclectic sound she describes as afro-infused bass music. Her sets are versatile, playful, and ready to make you sweat.']]
+    } }
+];
 
 /* Alle Texte der Seite. Sichtbarer Text steht NUR hier
    (Ausnahme: die statische Teilen-Vorschau im <head> und die
@@ -726,7 +855,6 @@ var TEXTE = {
     k2text: 'Pflanzen bilden Gemeinschaften. Unter der Erde sind sie verbunden und geben weiter, was sie haben.\n\nWir wollen einen Ort, an dem das auch für uns gilt.',
     k3u: 'PROGRAMM',
     k3text: 'Konzerte, Ausstellung, Performance.',
-    k3lineup: LINEUP,
     k4u: 'PLYNTHI',
     k4text: 'Zwischen zwei Blättern liegt eine Spannung. Sie schwankt — mit dem Licht, mit dem Wasser, mit jeder Berührung. Ein Gerät nimmt diese Schwankung ab und übersetzt sie in Töne.\n\nNichts daran ist ausgedacht. Was du hörst, ist der Puls einer Pflanze.',
     tonAn: 'Ton an', tonAus: 'Ton aus', tonLaedt: 'Lädt …',
@@ -743,6 +871,7 @@ var TEXTE = {
     kopiert: 'Link kopiert.',
     illuAlt: 'Gezeichneter Kopf mit geschlossenen Augen, in Blau, Grün und Ocker. Oben aus dem Schädel wächst ein Stängel mit großen grünen und braunen Blättern. Dünne wurzelartige Linien laufen nach unten weg.',
     buehneLabel: 'Derselbe Satz in mehreren Sprachen: Sich fühlen wie eine Pflanze. Zum Weiterlesen scrollen.',
+    zurueckLabel: 'Zurück zum Programm', fotoFehlt: 'Foto folgt.',
     teilenLabel: 'Diese Seite teilen', kalenderLabel: 'In den Kalender eintragen',
     menueLabel: 'Menü öffnen',
     menueZuLabel: 'Menü schließen'
@@ -754,7 +883,6 @@ var TEXTE = {
     k2text: 'Plants live in communities. Below ground they are connected, and they pass on what they have.\n\nWe want a place where the same is true for us.',
     k3u: 'PROGRAMME',
     k3text: 'Concerts, exhibition, performance.',
-    k3lineup: LINEUP,
     k4u: 'PLYNTHI',
     k4text: 'Between two leaves there is a voltage. It shifts — with the light, with the water, with every touch. A device picks that up and turns it into sound.\n\nNone of it is made up. What you hear is the pulse of a plant.',
     tonAn: 'Sound on', tonAus: 'Sound off', tonLaedt: 'Loading …',
@@ -771,6 +899,7 @@ var TEXTE = {
     kopiert: 'Link copied.',
     illuAlt: 'A drawn head with closed eyes, painted in blue, green and ochre. A stem grows out of the top of the skull, carrying large green and brown leaves. Thin root like lines run downward.',
     buehneLabel: 'The same sentence in several languages: feeling like a plant. Scroll to continue.',
+    zurueckLabel: 'Back to the programme', fotoFehlt: 'Photo to come.',
     teilenLabel: 'Share this page', kalenderLabel: 'Add to calendar',
     menueLabel: 'Open the menu',
     menueZuLabel: 'Close the menu'
@@ -851,6 +980,8 @@ function wendeSpracheAn() {
   $$('[data-aalt]').forEach(function (el) { el.alt = T[el.getAttribute('data-aalt')] || ''; });
   $$('[data-alabel]').forEach(function (el) { el.setAttribute('aria-label', T[el.getAttribute('data-alabel')] || ''); });
   baueAlleUeberschriften();
+  baueLineup();
+  if (aktuellerAct) fuelleAct(aktuellerAct);
   try { localStorage.setItem('flp-lang', sprache); } catch (e) {}
 }
 
@@ -1318,6 +1449,8 @@ function alsHex(rgb) {
   }).join('');
 }
 function setzeTinte(y) {
+  // Solange eine Act-Seite offen ist, gehoeren die Leisten ihr (Rot).
+  if (aktuellerAct) return;
   // Zwei getrennte Waechter, damit weiterhin nur bei echtem Wechsel
   // geschrieben wird - die Umschaltpunkte liegen jetzt aber auseinander.
   var p = panelOben(y);
@@ -1350,6 +1483,11 @@ document.addEventListener('click', function (e) {
   if (!a) return;
   var href = a.getAttribute('href');
   if (!href || href.length < 2) return;          // "#" allein gehört den Dialogen
+  /* Nur einfache Kapitel-Adressen. Ein Act-Link (#act/umi) ist KEIN gueltiger
+     CSS-Wahlausdruck - querySelector wirft dort, und der Fehler landete in
+     der Konsole, waehrend der Browser den Link trotzdem folgte. Diese Zeile
+     ist die zweite Stelle mit dem Problem; die erste steht beim Start. */
+  if (!/^#[A-Za-z][\w-]*$/.test(href)) return;
   var ziel = document.querySelector(href);
   var idx = ziel ? kapitel.indexOf(ziel) : -1;
   if (idx < 0) return;
@@ -1513,6 +1651,142 @@ function kalender() {
   });
 })();
 
+/* ---------- Act-Seiten ----------
+   Eine Ansicht ueber der Seite, kein eigenes Dokument (Begruendung im CSS).
+   Adresse: #act/<slug>. */
+var actSeite   = $('#actseite');
+var actBildEl  = $('#actBild');
+var actKnopfEl = $('#actKnopf');
+var actNameEl  = $('#actName');
+var actTextEl  = $('#actText');
+var aktuellerAct = null;
+
+/* Das Line-up als Liste. Nur Acts mit slug werden Links - siehe ACTS. */
+function baueLineup() {
+  var ul = $('#lineup');
+  if (!ul) return;
+  ul.innerHTML = '';
+  ACTS.forEach(function (a) {
+    var li = document.createElement('li');
+    if (a.slug) {
+      var link = document.createElement('a');
+      link.href = '#act/' + a.slug;
+      link.textContent = a.name;
+      li.appendChild(link);
+    } else {
+      li.textContent = a.name;
+    }
+    ul.appendChild(li);
+  });
+}
+
+/* Ein Act kann seinen Text fuer beide Sprachen gleich haben (dann ist es ein
+   Array) oder je Sprache einen eigenen (dann ein Objekt mit de/en). */
+function actText(a) {
+  if (!a.text) return [];
+  return Array.isArray(a.text) ? a.text : (a.text[sprache] || a.text.en || []);
+}
+
+function fuelleAct(a) {
+  var T = TEXTE[sprache];
+  actNameEl.textContent = a.name;
+
+  actBildEl.innerHTML = '';
+  if (a.bild) {
+    var img = document.createElement('img');
+    img.src = a.bild.datei;
+    img.alt = a.bild.alt || a.name;
+    img.loading = 'lazy';
+    actBildEl.appendChild(img);
+  } else {
+    var pf = document.createElement('p');
+    pf.className = 'fehlt';
+    pf.textContent = T.fotoFehlt;
+    actBildEl.appendChild(pf);
+  }
+
+  actKnopfEl.innerHTML = '';
+  if (a.link) {
+    var k = document.createElement('a');
+    k.className = 'knopf';
+    k.href = a.link.url;
+    k.target = '_blank';
+    k.rel = 'noopener';
+    var sp = document.createElement('span');
+    sp.textContent = a.link.text;
+    k.appendChild(sp);
+    actKnopfEl.appendChild(k);
+  }
+
+  actTextEl.innerHTML = '';
+  actText(a).forEach(function (zeile) {
+    var el = document.createElement('p');
+    if (zeile[0]) el.className = zeile[0];
+    el.textContent = zeile[1];
+    actTextEl.appendChild(el);
+  });
+}
+
+function zeigeAct(a) {
+  aktuellerAct = a;
+  fuelleAct(a);
+  actSeite.hidden = false;
+  actSeite.setAttribute('aria-hidden', 'false');
+  actSeite.scrollTop = 0;
+  document.documentElement.classList.add('kein-snap');
+  kopf.inert = true;
+  document.title = a.name + ' \u00b7 ' + TEXTE[sprache].titel;
+  // Die Leisten des Telefons auf das Rot der Act-Seite, sonst steht oben
+  // weiter die Farbe des Kapitels, aus dem man gekommen ist.
+  var rot = getComputedStyle(document.documentElement).getPropertyValue('--rot').trim();
+  document.documentElement.style.backgroundColor = rot;
+  document.body.style.backgroundColor = rot;
+  if (grundflaeche) grundflaeche.style.backgroundColor = rot;
+  meldeFarbe(rot);
+}
+
+function schliesseAct() {
+  if (actSeite.hidden) return;
+  aktuellerAct = null;
+  actSeite.hidden = true;
+  actSeite.setAttribute('aria-hidden', 'true');
+  document.documentElement.classList.remove('kein-snap');
+  document.title = TEXTE[sprache].titel;
+  // Zurueck aufs Programm - genau da kam man her.
+  var i = kapitel.indexOf($('#programm'));
+  if (i >= 0) window.scrollTo({ top: basis[i + 1], behavior: 'instant' });
+  // Waechter zuruecksetzen, damit setzeTinte die Farbe neu schreibt.
+  letztesPanel = null; letzteFlaeche = null;
+  stand();
+}
+
+function actAusHash() {
+  var m = /^#act\/(.+)$/.exec(location.hash || '');
+  if (!m) return null;
+  var slug = decodeURIComponent(m[1]);
+  for (var i = 0; i < ACTS.length; i++) {
+    if (ACTS[i].slug === slug) return ACTS[i];
+  }
+  return null;
+}
+function routeAct() {
+  var a = actAusHash();
+  if (a) { if (a !== aktuellerAct) zeigeAct(a); }
+  else schliesseAct();
+}
+window.addEventListener('hashchange', routeAct);
+
+/* Der Pfeil oben links. replaceState statt history.back(): so funktioniert er
+   auch, wenn jemand die Act-Adresse direkt aufgerufen hat (dann gibt es keine
+   Seite davor), und er haengt keinen Eintrag an den Verlauf. */
+$('#actZurueck').addEventListener('click', function () {
+  history.replaceState(null, '', location.pathname + location.search + '#programm');
+  schliesseAct();
+});
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape' && !actSeite.hidden) $('#actZurueck').click();
+});
+
 /* ---------- Dialoge ----------
    Beim Öffnen springt Chrome sonst an den ersten Snap-Punkt (Seitenanfang):
    Snap solange abschalten und die Scroll-Position festhalten. */
@@ -1547,7 +1821,10 @@ if (document.fonts && document.fonts.ready) {
 }
 // Deep-Link auf ein Kapitel: der Browser springt bei sticky-Kapiteln falsch,
 // deshalb einmal von Hand an die gerechnete Stelle.
-if (location.hash) {
+/* Nur einfache Kapitel-Adressen (#programm) hier durchlassen. '#act/umi' ist
+   KEIN gueltiger CSS-Wahlausdruck: querySelector wuerde werfen und den Rest
+   des Starts mitreissen - Sprachlauf und Farbmeldung inklusive. */
+if (location.hash && /^#[A-Za-z][\w-]*$/.test(location.hash)) {
   var ziel = document.querySelector(location.hash);
   if (ziel && kapitel.indexOf(ziel) >= 0) {
     requestAnimationFrame(function () {
@@ -1555,6 +1832,9 @@ if (location.hash) {
     });
   }
 }
+// Wer mit einer Act-Adresse ankommt, landet direkt auf der Act-Seite.
+routeAct();
+
 /* Die Sprachen loslaufen lassen. Erst im naechsten Frame, damit ein
    Deep-Link (oben) seine Sprungmarke schon gesetzt hat - sprachDurchlauf()
    prueft die Scrollposition und laesst den Lauf dann aus. */
