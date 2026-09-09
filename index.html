@@ -305,11 +305,51 @@ body {
 }
 .zeile { font-size: clamp(1.05rem, 2.8vw, 1.5rem); line-height: 1.7; }
 
-/* Ein Kapitel, das nur aus Text besteht (Intro). Ohne Ueberschrift wuerde der
-   Absatz am oberen Rand des Innenbereichs kleben - hier sitzt er wirklich in
-   der Mitte der Flaeche, waagerecht wie senkrecht. */
-.nur-text { display: grid; place-items: center; min-height: 100%; }
-.nur-text .flz { text-align: center; }
+/* ---------- Kapitel Intro ----------
+   Am 07.09. war die Ueberschrift raus und der Absatz stand allein mittig.
+   Am 09.09. kam die Ansage: INTRO gross oben, die beiden zusammengehoerenden
+   Saetze als EIN Block "genau zentriert in die Mitte der Seite", der
+   Schlusssatz unten - und kein Strich dazwischen. */
+#wurzeln {
+  display: flex; flex-direction: column; justify-content: space-between;
+  align-items: stretch; text-align: center;
+}
+/* Der mittlere Block haengt nicht im Fluss. Im Fluss waere er die Mitte des
+   RESTES zwischen Ueberschrift und Schlusssatz, und die liegt deutlich
+   tiefer als die Bildschirmmitte.
+   50svh statt 50%: das Panel ist 100lvh hoch, der Inhalt sitzt aber wie
+   ueberall auf der Seite in den oberen 100svh. Mit 50% saesse der Block bei
+   ausgeklappter Adressleiste zu tief. */
+#introMitte {
+  position: absolute; left: 0; right: 0; top: 50svh;
+  transform: translateY(-50%);
+  padding: 0 6vw;
+}
+.intro-satz {
+  margin: 0 auto; max-width: 40rem;
+  font-size: clamp(1.35rem, 4.6vw, 2rem); line-height: 1.32;
+}
+.intro-satz b { font-weight: 700; }
+.intro-schluss {
+  margin: 0 auto; max-width: 40rem;
+  font-size: clamp(1.15rem, 3.6vw, 1.6rem); line-height: 1.4;
+}
+/* Flache Schirme (kleines Handy im Querformat): dort deckt der mittlere
+   Block die Ueberschrift zu - da geht er zurueck in den Fluss. */
+@media (max-height: 620px) {
+  #introMitte { position: static; transform: none; padding: 0; }
+  #wurzeln { justify-content: space-around; gap: 1rem; }
+}
+
+/* Die drei Teile kommen nacheinander, sobald das Kapitel den Bildschirm
+   uebernimmt. Die Verzoegerung steht am Element selbst. */
+.stufe {
+  opacity: 0; transform: translateY(18px);
+  transition: opacity .85s cubic-bezier(.22,.7,.24,1),
+              transform .85s cubic-bezier(.22,.7,.24,1);
+  transition-delay: var(--verzug, 0s);
+}
+#wurzeln.an .stufe { opacity: 1; transform: none; }
 
 /* Line-up (Kapitel 3). Ein Name je Zeile, deutlich groesser als .zeile -
    die Namen sind der Inhalt des Kapitels, nicht Beiwerk. Bewusst KEIN
@@ -520,6 +560,11 @@ dialog .zu { margin-top: 1.2rem; }
   #kopf.nav #kopfNav, #kopf.nav #btnKalenderKopf, #kopf.nav #btnTeilenKopf,
   #kopf.nav #btnSprache, #kopf.nav #btnBurger { transition-delay: 0s; }
   .satz, #introDatum { transition: none; }
+  /* Das Intro blendet weiter auf - nur ohne Verschiebung und schneller.
+     Ganz abschalten hiesse: der Text steht sofort komplett da, also genau
+     der Zustand, der weg sollte. */
+  .stufe, #wurzeln.an .stufe { transform: none; transition-duration: .3s; }
+  .stufe { transition-delay: calc(var(--verzug, 0s) * 0.5); }
   svg animate { display: none; }
 }
 
@@ -648,13 +693,16 @@ noscript .njs {
     <img src="illustration.webp" width="1400" height="1839" data-aalt="illuAlt" alt="">
   </section>
 
-  <!-- Kein .ueber mehr: die Ueberschrift "UNTER DER ERDE" ist am 07.09. auf
-       Felix' Wunsch raus. Der Text steht jetzt allein und mittig - in Hoehe
-       UND Breite, dafuer sorgt .nur-text unten im CSS. -->
+  <!-- Die Ueberschrift war am 07.09. raus ("UNTER DER ERDE") und ist am
+       09.09. als INTRO zurueck. Drei Teile: Ueberschrift oben, ein Block
+       aus beiden Saetzen genau auf halber Bildschirmhoehe, Schlusssatz
+       unten. Reihenfolge des Einblendens ueber --verzug. -->
   <section class="kap bg-sand" id="wurzeln" data-tinte="#563814">
-    <div class="kap-inner nur-text">
-      <p class="flz" data-t="k2text"></p>
+    <div class="ueber stufe" data-ueber="k2u"></div>
+    <div id="introMitte">
+      <p class="intro-satz stufe" style="--verzug:.32s" data-tm="k2mitte"></p>
     </div>
+    <p class="intro-schluss stufe" style="--verzug:.60s" data-t="k2schluss"></p>
   </section>
 
   <section class="kap bg-rot" id="programm" data-tinte="#ffffff">
@@ -908,7 +956,13 @@ var TEXTE = {
     titel: 'Feeling like a plant. 26. September, Amadeus, Oldenburg',
     navWurzeln: 'Intro', navProgramm: 'Programm',
     navHoeren: 'Hören', navWannwo: 'Wann & Wo', navBisdahin: 'Bis dahin',
-    k2text: 'Pflanzen bilden Gemeinschaften. Unter der Erde sind sie verbunden und geben weiter, was sie haben.\n\nWir wollen einen Ort, an dem das auch für uns gilt.',
+    k2u: 'INTRO',
+    /* Hervorhebungen stehen als Paare [fett, Text] da, nicht als HTML - so
+       bleibt es beim textContent wie im Rest der Seite. */
+    k2mitte: [[0, 'Pflanzen bilden '], [1, 'Gemeinschaften'],
+              [0, '. Unter der Erde sind sie '], [1, 'verbunden'],
+              [0, ' und geben weiter, was sie haben.']],
+    k2schluss: 'Wir wollen einen Ort, an dem das auch für uns gilt.',
     k3u: 'PROGRAMM',
     k3text: 'Konzerte, Ausstellung, Performance.',
     k4u: 'PLYNTHI',
@@ -937,7 +991,11 @@ var TEXTE = {
     titel: 'Feeling like a plant. 26 September, Amadeus, Oldenburg',
     navWurzeln: 'Intro', navProgramm: 'Programme',
     navHoeren: 'Listen', navWannwo: 'When & where', navBisdahin: 'Until then',
-    k2text: 'Plants live in communities. Below ground they are connected, and they pass on what they have.\n\nWe want a place where the same is true for us.',
+    k2u: 'INTRO',
+    k2mitte: [[0, 'Plants live in '], [1, 'communities'],
+              [0, '. Below ground they are '], [1, 'connected'],
+              [0, ', and they pass on what they have.']],
+    k2schluss: 'We want a place where the same is true for us.',
     k3u: 'PROGRAMME',
     k3text: 'Concerts, exhibition, performance.',
     k4u: 'PLYNTHI',
@@ -1030,11 +1088,29 @@ function baueAlleUeberschriften() {
 }
 
 /* ---------- Sprache anwenden ---------- */
+/* Text mit hervorgehobenen Woertern. Die Texttabelle liefert Paare
+   [fett, Text]; gebaut wird mit echten Knoten statt mit innerHTML, damit
+   in der Tabelle nie Auszeichnung landen kann. */
+function baueMarkierten(el, teile) {
+  el.textContent = '';
+  if (!teile) return;
+  teile.forEach(function (t) {
+    var knoten = document.createTextNode(t[1]);
+    if (t[0]) {
+      var b = document.createElement('b');
+      b.appendChild(knoten);
+      knoten = b;
+    }
+    el.appendChild(knoten);
+  });
+}
+
 function wendeSpracheAn() {
   var T = TEXTE[sprache];
   document.documentElement.lang = sprache;
   document.title = T.titel;
   $$('[data-t]').forEach(function (el) { el.textContent = T[el.getAttribute('data-t')] || ''; });
+  $$('[data-tm]').forEach(function (el) { baueMarkierten(el, T[el.getAttribute('data-tm')]); });
   $$('[data-aalt]').forEach(function (el) { el.alt = T[el.getAttribute('data-aalt')] || ''; });
   $$('[data-alabel]').forEach(function (el) { el.setAttribute('aria-label', T[el.getAttribute('data-alabel')] || ''); });
   baueAlleUeberschriften();
@@ -1477,6 +1553,7 @@ function panelFlaeche(y) {
   return panels[k];
 }
 var letztesPanel = null, letzteFlaeche = null;
+var introKap = document.getElementById('wurzeln');
 var grundflaeche = document.getElementById('grundflaeche');
 /* iOS liest die theme-color EINMAL beim Laden und danach nie wieder, wenn man
    nur das content-Attribut aendert. Belegt am 07.09. mit fuenf Fotos von
@@ -1534,6 +1611,12 @@ function setzeTinte(y) {
     // Und dieselbe Farbe an iOS melden, sonst bleiben die Balken hinter
     // Statusleiste und Adressleiste in der Farbe vom Seitenanfang stehen.
     meldeFarbe(hex);
+    /* Das Intro blendet sich auf, sobald es den Bildschirm uebernimmt, und
+       setzt sich zurueck, wenn es ihn abgibt - beim naechsten Vorbeikommen
+       laeuft die Folge also wieder von vorn. panelFlaeche() ist genau der
+       richtige Melder: er fragt, was der Nutzer SIEHT, nicht was unter der
+       Wortmarke liegt. */
+    if (introKap) introKap.classList.toggle('an', f === introKap);
   }
 }
 document.addEventListener('click', function (e) {
