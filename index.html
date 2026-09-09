@@ -105,6 +105,16 @@ body {
   pointer-events: none;          /* die Einzelteile schalten sich selbst frei */
 }
 #kopfWm {
+  /* Knopf-Ruecksetzung: die Wortmarke soll aussehen wie Text, nicht wie ein
+     Knopf - und vor allem dieselbe Box behalten wie vorher der <span>, denn
+     messeFlug() liest an ihr die Andockstelle des Flugs ab. */
+  appearance: none; -webkit-appearance: none;
+  background: none; border: 0; margin: 0; padding: 0;
+  font-family: inherit; color: inherit; cursor: pointer;
+  /* #kopf steht auf pointer-events:none, die Einzelteile schalten sich selbst
+     frei. Solange die Marke unsichtbar ist (visibility:hidden, auf der Buehne),
+     nimmt sie ohnehin keinen Klick an - genau richtig, dort steht sie gross. */
+  pointer-events: auto;
   font-weight: 700; text-transform: uppercase; letter-spacing: -0.02em;
   /* Mitschrumpfen aus demselben Grund wie der Abstand oben. Ungefaehrlich fuer
      den Flug: messeFlug() liest die Andockstelle zur Laufzeit mit
@@ -116,6 +126,7 @@ body {
    liefert getBoundingClientRect weiter die echte Andockstelle, und ein
    Vorleseprogramm sagt die Wortmarke nicht doppelt an. */
 #kopf.wm #kopfWm { visibility: visible; }
+#kopfWm:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; border-radius: 3px; }
 
 /* Teilen, DE/EN und Menue fliegen ERST NACH dem Andocken von oben ein.
    Der Weg ist in Pixeln gerechnet, nicht in Prozent: #kopfNav ist nur rund
@@ -305,6 +316,13 @@ body {
 }
 .zeile { font-size: clamp(1.05rem, 2.8vw, 1.5rem); line-height: 1.7; }
 
+/* PLYNTHI traegt seit dem 09.09. eine Unterzeile UND eine laengere
+   Erklaerung. Gemessen bei 375x812 ragte der Ton-Knopf 29 px aus dem
+   Panel - und .kap schneidet ab (overflow:hidden), er waere schlicht weg
+   gewesen. Deshalb hier eine Stufe kleiner und enger, nur in diesem
+   Kapitel. */
+#hoeren .flz { font-size: clamp(0.95rem, 2.35vw, 1.3rem); line-height: 1.5; }
+
 /* ---------- Kapitel Intro ----------
    Am 07.09. war die Ueberschrift raus und der Absatz stand allein mittig.
    Am 09.09. kam die Ansage: INTRO gross oben, die beiden zusammengehoerenden
@@ -328,11 +346,23 @@ body {
 .intro-satz {
   margin: 0 auto; max-width: 40rem;
   font-size: clamp(1.35rem, 4.6vw, 2rem); line-height: 1.32;
+  /* Linksbuendig (Felix, 09.09.). Der BLOCK bleibt mittig - er ist nur so
+     breit wie noetig und sitzt weiter in der Bildschirmmitte; nur die Zeilen
+     darin fangen jetzt alle an derselben Kante an. Ueberschrift und
+     Schlusssatz bleiben zentriert. */
+  text-align: left;
+  /* verhindert, dass die letzte Zeile als einzelnes Wort haengenbleibt -
+     bei flatterndem rechten Rand faellt das sonst sofort auf. */
+  text-wrap: pretty;
 }
 .intro-satz b { font-weight: 700; }
 .intro-schluss {
   margin: 0 auto; max-width: 40rem;
   font-size: clamp(1.15rem, 3.6vw, 1.6rem); line-height: 1.4;
+  /* Auch linksbuendig (Felix, 09.09.) - und weil beide Bloecke dieselbe
+     Hoechstbreite und dieselbe Polsterung haben, steht ihre linke Kante
+     uebereinander, auf dem Handy wie am Rechner. */
+  text-align: left; text-wrap: pretty;
 }
 /* Flache Schirme (kleines Handy im Querformat): dort deckt der mittlere
    Block die Ueberschrift zu - da geht er zurueck in den Fluss. */
@@ -613,7 +643,11 @@ noscript .njs {
 </svg>
 
 <header id="kopf" inert>
-  <span id="kopfWm" aria-label="Feeling like a plant">Feeling like a plant</span>
+  <!-- Klickbar seit 09.09.: die Wortmarke fuehrt zurueck zum Startbild, so wie
+       das Logo auf jeder Seite nach Hause fuehrt (Felix). Ein <button>, kein
+       Link: es wird nichts geoeffnet, es wird gescrollt - und ein Link mit
+       "#" gehoert hier den Dialogen. -->
+  <button type="button" id="kopfWm" data-alabel="startLabel">Feeling like a plant</button>
   <nav id="kopfNav" aria-label="Kapitel">
     <a href="#wurzeln"   data-t="navWurzeln"></a>
     <a href="#programm"  data-t="navProgramm"></a>
@@ -716,10 +750,13 @@ noscript .njs {
   <section class="kap bg-blau" id="hoeren" data-tinte="#ffffff">
     <div class="kap-inner">
       <div class="ueber" data-ueber="k4u"></div>
-      <!-- Seit 07.09. steht hier wieder ein Text - der kurze Lexikoneintrag
-           zum Puls der Pflanze. Der Knopf rueckt darunter. -->
-      <p class="flz" data-t="k4text" style="margin-top:1.6rem"></p>
-      <p style="margin-top:1.8rem">
+      <!-- Unterzeile seit 09.09. (Felix): die Ueberschrift bleibt PLYNTHI,
+           direkt darunter steht in einer Zeile, was das ist. Gleiche Klasse
+           wie unter PROGRAMM, damit beide Kapitel denselben Rhythmus haben. -->
+      <p class="zeile" data-t="k4unter" style="margin-top:0.9rem"></p>
+      <!-- Darunter die Erklaerung des Geraets. Der Knopf rueckt nach unten. -->
+      <p class="flz" data-t="k4text" style="margin-top:1.3rem"></p>
+      <p style="margin-top:1.4rem">
         <button class="knopf" id="btnTon"><span data-t="tonAn"></span></button>
       </p>
       <p class="klein" id="tonHinweis" hidden data-t="tonFehlt"></p>
@@ -744,11 +781,12 @@ noscript .njs {
         <p class="zeile" data-t="k5z4"></p>
         <p class="klein" style="margin-top:0.8rem">Mottenstraße 21, 26122 Oldenburg</p>
         <p class="klein" data-t="k5schuhe" style="margin-top:0.5rem"></p>
+        <!-- Nur noch "Route planen" (Felix, 09.09.): Kalender und Weitersagen
+             stehen eine Seite weiter unter BIS DAHIN, doppelt braucht es sie
+             nicht. Die Kopfzeile hat beides ohnehin durchgehend dabei. -->
         <div class="knopfstapel">
           <a class="knopf" href="https://www.google.com/maps/search/?api=1&query=Amadeus%20Mottenstra%C3%9Fe%2021%2026122%20Oldenburg"
              target="_blank" rel="noopener"><span data-t="anfahrt"></span></a>
-          <button class="knopf" id="btnKalender1"><span data-t="kalender"></span></button>
-          <button class="knopf" id="btnTeilen1"><span data-t="teilen"></span></button>
         </div>
       </div>
     </div>
@@ -966,7 +1004,8 @@ var TEXTE = {
     k3u: 'PROGRAMM',
     k3text: 'Konzerte, Ausstellung, Performance.',
     k4u: 'PLYNTHI',
-    k4text: 'Zwischen zwei Blättern liegt eine Spannung. Sie schwankt — mit dem Licht, mit dem Wasser, mit jeder Berührung. Ein Gerät nimmt diese Schwankung ab und übersetzt sie in Töne.\n\nNichts daran ist ausgedacht. Was du hörst, ist der Puls einer Pflanze.',
+    k4unter: 'Der Puls der Pflanze.',
+    k4text: 'Zwei Elektroden liegen an einem Blatt. Dazwischen misst ein kleines Gerät, wie gut die Pflanze Strom leitet — ein Wert, der nie still steht: Er schwankt mit dem Licht, mit dem Wasser, mit jeder Berührung.\n\nDiese Schwankung wird nicht gedeutet, sondern direkt in Klang übersetzt. Fasst jemand die Pflanze an, ändert sich der Messwert um rund ein Fünftel — und man hört es sofort: Der Ton wird heller und voller. Loslassen, und er beruhigt sich wieder.\n\nDie Technik bleibt sichtbar: Elektrode, Kabel, Kästchen. Nichts daran ist ausgedacht. Was du hörst, ist der Puls einer Pflanze.',
     tonAn: 'Ton an', tonAus: 'Ton aus', tonLaedt: 'Lädt …',
     tonFehlt: 'Die Aufnahme folgt.',
     k5u: 'WANN UND WO',
@@ -984,7 +1023,7 @@ var TEXTE = {
     zurueckLabel: 'Zurück zum Programm', fotoFehlt: 'Foto folgt.',
     fotoVon: 'Foto:', beiDienst: 'bei',
     teilenLabel: 'Diese Seite teilen', kalenderLabel: 'In den Kalender eintragen',
-    menueLabel: 'Menü öffnen',
+    menueLabel: 'Menü öffnen', startLabel: 'Feeling like a plant — zurück zum Anfang',
     menueZuLabel: 'Menü schließen'
   },
   en: {
@@ -999,7 +1038,8 @@ var TEXTE = {
     k3u: 'PROGRAMME',
     k3text: 'Concerts, exhibition, performance.',
     k4u: 'PLYNTHI',
-    k4text: 'Between two leaves there is a voltage. It shifts — with the light, with the water, with every touch. A device picks that up and turns it into sound.\n\nNone of it is made up. What you hear is the pulse of a plant.',
+    k4unter: 'The pulse of a plant.',
+    k4text: 'Two electrodes sit on a leaf. Between them a small device measures how well the plant conducts electricity — a reading that never holds still: it shifts with the light, with the water, with every touch.\n\nThat shift is not interpreted, it is turned straight into sound. Touch the plant and the reading changes by about a fifth — and you hear it at once: the tone grows brighter and fuller. Let go, and it settles again.\n\nThe technology stays visible: electrode, cable, little box. None of it is made up. What you hear is the pulse of a plant.',
     tonAn: 'Sound on', tonAus: 'Sound off', tonLaedt: 'Loading …',
     tonFehlt: 'The recording is on its way.',
     k5u: 'WHEN AND WHERE',
@@ -1017,7 +1057,7 @@ var TEXTE = {
     zurueckLabel: 'Back to the programme', fotoFehlt: 'Photo to come.',
     fotoVon: 'Photo:', beiDienst: 'on',
     teilenLabel: 'Share this page', kalenderLabel: 'Add to calendar',
-    menueLabel: 'Open the menu',
+    menueLabel: 'Open the menu', startLabel: 'Feeling like a plant — back to the top',
     menueZuLabel: 'Close the menu'
   }
 };
@@ -1667,6 +1707,33 @@ document.addEventListener('click', function (e) {
   }, { rootMargin: '30% 0px 30% 0px' });
   $$('.ueber').forEach(function (u) { b.observe(u); });
 })();
+
+/* ---------- Wortmarke zurueck zum Startbild ---------- */
+/* basis[0] statt einer festen 0: der Stapel muss nicht bei Null anfangen,
+   und rechneBasis() kennt die tatsaechliche Stelle. Der Rest ist absichtlich
+   Wort fuer Wort derselbe Ablauf wie beim Klick auf einen Kapitel-Link -
+   erst die Farbe setzen, dann scrollen, im ruhiggestellten oder versteckten
+   Tab ohne Animation. */
+$('#kopfWm').addEventListener('click', function () {
+  var ziel_y = basis[0] || 0;
+  var m = $('#menu'); if (m) m.classList.remove('offen');
+  setzeTinte(ziel_y);
+  /* Ueber lange Strecken NICHT weich scrollen. Vom letzten Kapitel aus sind
+     das ueber zehn Bildschirme; solange die Animation laeuft, kaempft jede
+     Wischbewegung dagegen an und die Seite fuehlt sich fest an (Felix,
+     09.09.: "wenn die startseite aufgeht kann ich nicht mehr runterscrollen").
+     Ab drei Bildschirmen wird deshalb gesprungen. */
+  var weit = Math.abs((window.scrollY || window.pageYOffset) - ziel_y) > vh * 3;
+  if (REDUZIERT || weit || document.visibilityState === 'hidden') {
+    window.scrollTo({ top: ziel_y, behavior: 'instant' });
+    return;
+  }
+  requestAnimationFrame(function () {
+    requestAnimationFrame(function () {
+      window.scrollTo({ top: ziel_y, behavior: 'smooth' });
+    });
+  });
+});
 
 /* ---------- Menü ---------- */
 var menu = $('#menu');
