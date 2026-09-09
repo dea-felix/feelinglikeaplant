@@ -376,6 +376,36 @@ body {
 .act-text .quelle { font-size: 0.85rem; opacity: 0.85; margin-top: -0.6rem; }
 .act-knopf { margin-top: 1rem; text-align: center; }
 
+/* Bildnachweis - Pressefotos kommen mit Fotografennamen, der gehoert
+   sichtbar unter das Bild. */
+.act-credit {
+  margin: 0.6rem 0 0; font-size: 0.75rem; letter-spacing: 0.04em;
+  opacity: 0.7; text-align: center;
+}
+
+/* Die Dienst-Knoepfe stehen UNTER dem Text (Felix, 09.09.). Kreis mit
+   Symbol, darunter ein leises Woertchen - ein reiner Kreis ohne Text
+   ist am Handy nicht zu deuten, dort gibt es kein Hover. */
+.act-links {
+  display: flex; flex-wrap: wrap; gap: 1.5rem;
+  justify-content: center; margin-top: 2.2rem;
+}
+.act-link {
+  display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+  text-decoration: none; color: inherit; min-width: 56px;
+}
+.act-link-kreis {
+  width: 52px; height: 52px; border: 2.5px solid currentColor;
+  border-radius: 999px; display: grid; place-items: center;
+}
+.act-link-wort {
+  font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.12em; opacity: 0.75;
+}
+.act-link:hover .act-link-kreis,
+.act-link:focus-visible .act-link-kreis { background: currentColor; color: var(--grund, var(--rot)); }
+.act-link:hover .act-link-wort, .act-link:focus-visible .act-link-wort { opacity: 1; }
+
 @media (min-width: 900px) {
   /* Zwei Spalten: Bild links, Text rechts und linksbuendig. Das Bild bleibt
      stehen, gescrollt wird nur der Text (Felix, 07.09.). */
@@ -383,11 +413,14 @@ body {
     display: grid; grid-template-columns: minmax(0, 40%) minmax(0, 1fr);
     gap: 3.2rem; align-items: start;
   }
+  .act-innen.ohne-bild { display: block; }
   .act-bildspalte { position: sticky; top: max(4.5rem, env(safe-area-inset-top) + 3.5rem); }
   .act-textspalte { text-align: left; }
   .act-name { margin-top: 0; }
   .act-knopf { text-align: left; }
   .act-knopf .knopf { margin-left: 0; }
+  .act-credit { text-align: left; }
+  .act-links { justify-content: flex-start; }
 }
 /* Niedrige Displays (kleine Handys, Querformat): .kap schneidet ab
    (overflow: hidden) - ein abgeschnittener Name waere ein echter Fehler.
@@ -596,11 +629,13 @@ noscript .njs {
   <div class="act-innen">
     <div class="act-bildspalte">
       <div class="act-bild" id="actBild"></div>
+      <p class="act-credit" id="actCredit" hidden></p>
       <div class="act-knopf" id="actKnopf"></div>
     </div>
     <div class="act-textspalte">
       <h2 class="act-name" id="actName"></h2>
       <div class="act-text" id="actText"></div>
+      <div class="act-links" id="actLinks"></div>
     </div>
   </div>
 </div>
@@ -807,11 +842,26 @@ var INTRO_DATUM = '26.09.2026 · AMADEUS OLDENBURG';
    Queer Falafel haben ihre Texte selbst so geschrieben, eine Uebersetzung
    waere eine Umschreibung (entschieden mit Felix am 07.09.). */
 var ACTS = [
-  { name: 'Sibb' },
+  { name: 'Sibb', slug: 'sibb',
+    bild: { datei: 'artists/sibb.jpg', alt: 'Sibb', credit: 'Max Grund' },
+    /* Der ?si=-Anhang der Spotify-Adresse ist eine Weiterempfehlungs-
+       Kennung und gehoert nicht auf die Seite - der Link funktioniert
+       ohne ihn genauso. */
+    links: [
+      { art: 'spotify',   url: 'https://open.spotify.com/artist/2W4ofkyPFcMBq8nFYpYX3q' },
+      { art: 'instagram', url: 'https://www.instagram.com/asimpleblackboy/' },
+      { art: 'youtube',   url: 'https://www.youtube.com/@ASimpleBlackBoy' }
+    ],
+    text: {
+      de: [['', 'Sibb ist ein Musikperformer, der sich der modernen zeitgen\u00f6ssischen Pop-, Dance- und Soulmusik verschrieben hat. Der in Bremen lebende K\u00fcnstler sorgt mit seinem eindringlichen Gesang und seiner charismatischen B\u00fchnenpr\u00e4senz weit \u00fcber die Stadtgrenzen hinaus f\u00fcr Aufsehen.'],
+           ['', 'Er schreibt Musik mit dem Ziel, die Zuh\u00f6rer dazu anzuregen, \u00fcber ihre Beziehung zum Leben und ihre Verbindungen zu den Menschen in ihrem Umfeld nachzudenken. Sibbs Kernanliegen ist zutiefst gemeinschaftlich gepr\u00e4gt. Er m\u00f6chte die gelebten Erfahrungen der Gemeinschaften, denen er begegnet, bewahren und verewigen und verwandelt reale Verbindungen in anspruchsvolle, ausgefeilte Kunst.']],
+      en: [['', 'Bremen-based singer-songwriter Sibb is carving a unique space in contemporary pop, blending a featherlight falsetto with magnetic stage presence.'],
+           ['', 'He writes music with the aim of encouraging listeners to reflect on their relationship with life and their connections to the people around them. Sibb\u2019s core mission is deeply communal. He seeks to preserve and immortalise the lived experiences of the communities he encounters, turning real-world connections into high-concept, polished art.']]
+    } },
 
   { name: 'The Anté Dote', slug: 'ante-dote',
     bild: { datei: 'artists/the-ante-dote.jpg', alt: 'The Anté Dote' },
-    link: { url: 'https://ante-dote.net', text: 'ante-dote.net' },
+    links: [{ art: 'web', url: 'https://ante-dote.net', wort: 'ante-dote.net' }],
     text: [
       ['zitat',  '„The Anté Dote doesn\u2019t just raise his voice \u2014 he sharpens it into a tool for survival, protest and empowerment. Expect fast-tongued truths, punchlines that sting, and poetry laced with politics, love and (com)passion, crafted for those who know that silence is never neutral."'],
       ['quelle', '\u2014 Bucht Der Träumer Festival'],
@@ -822,7 +872,8 @@ var ACTS = [
   { name: 'Zico' },
 
   { name: 'Queer Falafel', slug: 'queer-falafel',
-    bild: { datei: 'artists/queer-falafel.jpg', alt: 'Queer Falafel' },
+    bild: { datei: 'artists/queer-falafel.jpg', alt: 'Queer Falafel', credit: 'Lea Lahoud',
+            blick: '13% center' },
     link: null,
     text: [
       ['', 'Queer Falafel, Lebanese Genderfuck, roaming around the globe.'],
@@ -835,7 +886,7 @@ var ACTS = [
 
   { name: '.Umi.', slug: 'umi',
     bild: null,
-    link: { url: 'https://soundcloud.com/y_umi', text: 'SoundCloud' },
+    links: [{ art: 'soundcloud', url: 'https://soundcloud.com/y_umi' }],
     text: {
       de: [['', '.Umi. ist eine DJ aus Bremen, die es liebt, durch verschiedene Genres zu navigieren, um Tracks zu entdecken, mit denen sie sich verbunden fühlt. Als leidenschaftliche Musikliebhaberin verbindet sie in ihrem eklektischen Sound basslastige Beats mit afrikanischen Rhythmen, den sie als afro-infused bass music beschreibt.']],
       en: [['', '.Umi. is a Bremen-based DJ who loves navigating through different genres to uncover tracks she connects with. A passionate music lover, she blends bass-heavy beats with African rhythms into an eclectic sound she describes as afro-infused bass music. Her sets are versatile, playful, and ready to make you sweat.']]
@@ -874,6 +925,7 @@ var TEXTE = {
     illuAlt: 'Gezeichneter Kopf mit geschlossenen Augen, in Blau, Grün und Ocker. Oben aus dem Schädel wächst ein Stängel mit großen grünen und braunen Blättern. Dünne wurzelartige Linien laufen nach unten weg.',
     buehneLabel: 'Derselbe Satz in mehreren Sprachen: Sich fühlen wie eine Pflanze. Zum Weiterlesen scrollen.',
     zurueckLabel: 'Zurück zum Programm', fotoFehlt: 'Foto folgt.',
+    fotoVon: 'Foto:', beiDienst: 'bei',
     teilenLabel: 'Diese Seite teilen', kalenderLabel: 'In den Kalender eintragen',
     menueLabel: 'Menü öffnen',
     menueZuLabel: 'Menü schließen'
@@ -902,6 +954,7 @@ var TEXTE = {
     illuAlt: 'A drawn head with closed eyes, painted in blue, green and ochre. A stem grows out of the top of the skull, carrying large green and brown leaves. Thin root like lines run downward.',
     buehneLabel: 'The same sentence in several languages: feeling like a plant. Scroll to continue.',
     zurueckLabel: 'Back to the programme', fotoFehlt: 'Photo to come.',
+    fotoVon: 'Photo:', beiDienst: 'on',
     teilenLabel: 'Share this page', kalenderLabel: 'Add to calendar',
     menueLabel: 'Open the menu',
     menueZuLabel: 'Close the menu'
@@ -1659,6 +1712,9 @@ function kalender() {
 var actSeite   = $('#actseite');
 var actBildEl  = $('#actBild');
 var actKnopfEl = $('#actKnopf');
+var actCreditEl = $('#actCredit');
+var actInnen = $('.act-innen');
+var actLinksEl = $('#actLinks');
 var actNameEl  = $('#actName');
 var actTextEl  = $('#actText');
 var aktuellerAct = null;
@@ -1682,6 +1738,22 @@ function baueLineup() {
   });
 }
 
+/* Die Dienst-Symbole. Bewusst alle in derselben Strichstaerke gezeichnet
+   statt als Original-Logos: nebeneinander wirken fremde Marken-Logos wie
+   Fremdkoerper, eine eigene Zeichnung gehoert zur Seite. Erkennbar bleiben
+   sie ueber die Form UND das Woertchen darunter. */
+var SYMBOLE = {
+  spotify: '<circle cx="12" cy="12" r="9.2"/><path d="M7.1 9.5c3.3-.9 6.7-.6 9.6.9"/><path d="M7.8 12.7c2.7-.7 5.5-.4 7.8.8"/><path d="M8.6 15.7c2-.5 4.1-.3 5.9.6"/>',
+  instagram: '<rect x="3" y="3" width="18" height="18" rx="5.2"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1.15" fill="currentColor" stroke="none"/>',
+  youtube: '<rect x="2.6" y="5.4" width="18.8" height="13.2" rx="4.2"/><path d="M10.3 9.5l5.3 3-5.3 3z" fill="currentColor" stroke-linejoin="round"/>',
+  soundcloud: '<path d="M3 14.6v-2.3"/><path d="M6 16v-5.1"/><path d="M9 16.3V9.3"/><path d="M12 16.3V7.5"/><path d="M15 16.3V7.7a4.5 4.5 0 0 1 4.1 3.1 2.85 2.85 0 0 1-.5 5.5H15"/>',
+  web: '<circle cx="12" cy="12" r="9"/><path d="M3.2 12h17.6"/><path d="M12 3a13.6 13.6 0 0 1 0 18 13.6 13.6 0 0 1 0-18z"/>'
+};
+var DIENSTNAMEN = {
+  spotify: 'Spotify', instagram: 'Instagram', youtube: 'YouTube',
+  soundcloud: 'SoundCloud', web: 'Website'
+};
+
 /* Ein Act kann seinen Text fuer beide Sprachen gleich haben (dann ist es ein
    Array) oder je Sprache einen eigenen (dann ein Objekt mit de/en). */
 function actText(a) {
@@ -1699,13 +1771,22 @@ function fuelleAct(a) {
     img.src = a.bild.datei;
     img.alt = a.bild.alt || a.name;
     img.loading = 'lazy';
+    /* Der Rahmen ist immer 4:5, die Fotos sind es nie. Ohne Angabe schneidet
+       der Browser mittig - bei einem Querformat, in dem die Person links
+       steht, landet sie damit am Rand (Felix, 09.09.). 'blick' verschiebt
+       das Fenster auf die Person. */
+    if (a.bild.blick) img.style.objectPosition = a.bild.blick;
     actBildEl.appendChild(img);
-  } else {
-    var pf = document.createElement('p');
-    pf.className = 'fehlt';
-    pf.textContent = T.fotoFehlt;
-    actBildEl.appendChild(pf);
   }
+  /* Ohne Foto steht dort jetzt NICHTS - kein Kasten, kein "Foto folgt"
+     (Felix, 09.09.). Die ganze Bildspalte faellt weg, damit der Text auch
+     am Rechner die volle Breite bekommt statt neben einem Loch zu stehen. */
+  actInnen.classList.toggle('ohne-bild', !a.bild);
+
+  actBildEl.hidden = !a.bild;
+  var nachweis = a.bild && a.bild.credit;
+  actCreditEl.hidden = !nachweis;
+  actCreditEl.textContent = nachweis ? T.fotoVon + ' ' + a.bild.credit : '';
 
   actKnopfEl.innerHTML = '';
   if (a.link) {
@@ -1726,6 +1807,29 @@ function fuelleAct(a) {
     if (zeile[0]) el.className = zeile[0];
     el.textContent = zeile[1];
     actTextEl.appendChild(el);
+  });
+
+  /* Die Dienste stehen UNTER dem Text, nicht unter dem Bild (Felix, 09.09.). */
+  actLinksEl.innerHTML = '';
+  (a.links || []).forEach(function (l) {
+    var wort = l.wort || DIENSTNAMEN[l.art] || l.art;
+    var k = document.createElement('a');
+    k.className = 'act-link';
+    k.href = l.url;
+    k.target = '_blank';
+    k.rel = 'noopener';
+    k.setAttribute('aria-label', a.name + ' ' + T.beiDienst + ' ' + wort);
+    var kreis = document.createElement('span');
+    kreis.className = 'act-link-kreis';
+    kreis.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" ' +
+      'stroke="currentColor" stroke-width="1.9" stroke-linecap="round" ' +
+      'aria-hidden="true">' + (SYMBOLE[l.art] || SYMBOLE.web) + '</svg>';
+    var txt = document.createElement('span');
+    txt.className = 'act-link-wort';
+    txt.textContent = wort;
+    k.appendChild(kreis);
+    k.appendChild(txt);
+    actLinksEl.appendChild(k);
   });
 }
 
