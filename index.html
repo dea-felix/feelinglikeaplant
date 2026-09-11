@@ -335,12 +335,30 @@ body {
 }
 .zeile { font-size: clamp(1.05rem, 2.8vw, 1.5rem); line-height: 1.7; }
 
-/* PLYNTHI traegt seit dem 09.09. eine Unterzeile UND eine laengere
-   Erklaerung. Gemessen bei 375x812 ragte der Ton-Knopf 29 px aus dem
-   Panel - und .kap schneidet ab (overflow:hidden), er waere schlicht weg
-   gewesen. Deshalb hier eine Stufe kleiner und enger, nur in diesem
-   Kapitel. */
-#hoeren .flz { font-size: clamp(0.95rem, 2.35vw, 1.3rem); line-height: 1.5; }
+/* PLYNTHI steht seit dem 11.09. in voller Textgroesse - der neue Text
+   (Wasserfluss statt Beruehrung) ist kurz genug dafuer. Gemessen im
+   Hochformat: 375x812 hat 98 px Luft, 375x667 nur noch 12 px, 360x640
+   reicht NICHT mehr (-10 px). Und .kap schneidet ab (overflow:hidden) -
+   der Ton-Knopf verschwindet dann kommentarlos nach unten aus dem Bild,
+   ohne Fehler, ohne Scrollbalken, ohne irgendeinen Hinweis.
+   Deshalb: auf niedrigen Schirmen eine Stufe kleiner. Die Grenze liegt bei
+   720 px, also oberhalb des 667er-Falls, damit der nicht auf 12 px Luft
+   steht - das ist keine Reserve, sondern Zufall.
+   Wer hier je Text ergaenzt: NACHMESSEN, nicht schaetzen. */
+#hoeren .h-unter { margin-top: 0.9rem; }
+#hoeren .h-text  { margin-top: 1.3rem; }
+#hoeren .h-bauer { margin-top: 1.1rem; }
+#hoeren .h-knopf { margin-top: 1.4rem; }
+@media (max-height: 720px) {
+  #hoeren .flz   { font-size: clamp(0.9rem, 2.2vw, 1.2rem); line-height: 1.45; }
+  #hoeren .zeile { font-size: clamp(0.95rem, 2.4vw, 1.25rem); }
+  /* Die Abstaende tragen zusammen 75 px - auf einem 640er Schirm ist das
+     der Unterschied zwischen "passt knapp" und "Knopf abgeschnitten". */
+  #hoeren .h-unter { margin-top: 0.55rem; }
+  #hoeren .h-text  { margin-top: 0.85rem; }
+  #hoeren .h-bauer { margin-top: 0.7rem; }
+  #hoeren .h-knopf { margin-top: 0.9rem; }
+}
 
 /* ---------- Kapitel Intro ----------
    Am 07.09. war die Ueberschrift raus und der Absatz stand allein mittig.
@@ -772,10 +790,15 @@ noscript .njs {
       <!-- Unterzeile seit 09.09. (Felix): die Ueberschrift bleibt PLYNTHI,
            direkt darunter steht in einer Zeile, was das ist. Gleiche Klasse
            wie unter PROGRAMM, damit beide Kapitel denselben Rhythmus haben. -->
-      <p class="zeile" data-t="k4unter" style="margin-top:0.9rem"></p>
+      <p class="zeile h-unter" data-t="k4unter"></p>
       <!-- Darunter die Erklaerung des Geraets. Der Knopf rueckt nach unten. -->
-      <p class="flz" data-t="k4text" style="margin-top:1.3rem"></p>
-      <p style="margin-top:1.4rem">
+      <p class="flz h-text" data-t="k4text"></p>
+      <!-- Wer es gebaut hat, steht klein und getrennt vom Fliesstext -
+           das ist ein Werk-Nachweis, kein Satz der Erklaerung. -->
+      <p class="klein h-bauer" data-t="k4bauer"></p>
+      <!-- Die Abstaende stehen bewusst NICHT mehr inline: inline schlaegt
+           jede Regel, und auf niedrigen Schirmen muessen sie schrumpfen. -->
+      <p class="h-knopf">
         <button class="knopf" id="btnTon"><span data-t="tonAn"></span></button>
       </p>
       <p class="klein" id="tonHinweis" hidden data-t="tonFehlt"></p>
@@ -1040,7 +1063,8 @@ var TEXTE = {
     k3text: 'Konzerte, Ausstellung, Performance.',
     k4u: 'PLYNTHI',
     k4unter: 'Der Puls der Pflanze.',
-    k4text: 'Zwei Elektroden liegen an einem Blatt. Dazwischen misst ein kleines Gerät, wie gut die Pflanze Strom leitet — ein Wert, der nie still steht: Er schwankt mit dem Licht, mit dem Wasser, mit jeder Berührung.\n\nDiese Schwankung wird nicht gedeutet, sondern direkt in Klang übersetzt. Fasst jemand die Pflanze an, ändert sich der Messwert um rund ein Fünftel — und man hört es sofort: Der Ton wird heller und voller. Loslassen, und er beruhigt sich wieder.\n\nDie Technik bleibt sichtbar: Elektrode, Kabel, Kästchen. Nichts daran ist ausgedacht. Was du hörst, ist der Puls einer Pflanze.',
+    k4text: 'Wie viel Wasser gerade durch den Stamm läuft, bestimmt den Ton. Fließt viel, wird er höher. Fließt wenig, wird er tiefer.\n\nGemessen wird ohne Pause. Aus den vielen Einzelwerten entsteht ein Mittel, und dieses Mittel wird in Klang übersetzt.\n\nZwischen den Acts läuft PLYNTHI weiter und trägt den Abend.',
+    k4bauer: 'Ein Instrument von Felix Weckner.',
     tonAn: 'Ton an', tonAus: 'Ton aus', tonLaedt: 'Lädt …',
     tonFehlt: 'Die Aufnahme folgt.',
     k5u: 'WANN UND WO',
@@ -1074,7 +1098,8 @@ var TEXTE = {
     k3text: 'Concerts, exhibition, performance.',
     k4u: 'PLYNTHI',
     k4unter: 'The pulse of a plant.',
-    k4text: 'Two electrodes sit on a leaf. Between them a small device measures how well the plant conducts electricity — a reading that never holds still: it shifts with the light, with the water, with every touch.\n\nThat shift is not interpreted, it is turned straight into sound. Touch the plant and the reading changes by about a fifth — and you hear it at once: the tone grows brighter and fuller. Let go, and it settles again.\n\nThe technology stays visible: electrode, cable, little box. None of it is made up. What you hear is the pulse of a plant.',
+    k4text: 'How much water is moving through the trunk decides the note. A lot, and it rises. A little, and it falls.\n\nThe measuring never stops. Many single readings become an average, and that average is turned into sound.\n\nBetween the acts PLYNTHI keeps running, carrying the evening.',
+    k4bauer: 'An instrument by Felix Weckner.',
     tonAn: 'Sound on', tonAus: 'Sound off', tonLaedt: 'Loading …',
     tonFehlt: 'The recording is on its way.',
     k5u: 'WHEN AND WHERE',
