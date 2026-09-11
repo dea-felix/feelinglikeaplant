@@ -1005,7 +1005,11 @@ var ACTS = [
     ] },
 
   { name: '.Umi.', slug: 'umi',
-    bild: null,
+    /* Pressefoto seit 11.09. Hochformat 2316x3088, fuer's Netz auf 900x1200.
+       Kein 'blick' noetig: der 4:5-Rahmen schneidet nur 75 px Hoehe weg, das
+       Gesicht sitzt danach bei 31 % - genau da, wo es bei einem Portraet
+       hingehoert. Nachgerechnet, nicht geschaetzt. */
+    bild: { datei: 'artists/umi.jpg', alt: '.Umi.' },
     links: [{ art: 'soundcloud', url: 'https://soundcloud.com/y_umi' }],
     text: {
       de: [['', '.Umi. ist eine DJ aus Bremen, die es liebt, durch verschiedene Genres zu navigieren, um Tracks zu entdecken, mit denen sie sich verbunden fühlt. Als leidenschaftliche Musikliebhaberin verbindet sie in ihrem eklektischen Sound basslastige Beats mit afrikanischen Rhythmen, den sie als afro-infused bass music beschreibt.']],
