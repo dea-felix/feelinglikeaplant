@@ -346,10 +346,35 @@ body {
    steht - das ist keine Reserve, sondern Zufall.
    Wer hier je Text ergaenzt: NACHMESSEN, nicht schaetzen. */
 #hoeren .h-unter { margin-top: 0.9rem; }
+/* Linksbuendig (Felix, 12.09.) - dasselbe Muster wie im Intro vom 09.09.:
+   der BLOCK bleibt mittig (.flz hat max-width 36rem + margin auto), nur die
+   Zeilen darin fangen jetzt alle an derselben Kante an.
+   Ueberschrift und Unterzeile bleiben mittig - die beiden sind der Titel,
+   und der Knopf bleibt es auch, der ist eine Handlung und kein Text.
+   Der Nachweis bekommt dieselbe Hoechstbreite, damit seine linke Kante
+   genau unter der des Fliesstexts steht statt irgendwo daneben.
+   KEIN text-wrap:pretty hier, anders als im Intro: das rechnet Zeilen um
+   und kann eine dazu erfinden - bei 26 px Luft auf 360x640 ist das der
+   Unterschied zwischen "passt" und "Knopf weg". Linksbuendig allein
+   aendert keinen einzigen Umbruch, nur die Kante. */
+#hoeren .h-text  { text-align: left; }
+#hoeren .h-bauer { text-align: left; max-width: 36rem; margin-inline: auto; }
 #hoeren .h-text  { margin-top: 1.3rem; }
 #hoeren .h-bauer { margin-top: 1.1rem; }
 #hoeren .h-knopf { margin-top: 1.4rem; }
-@media (max-height: 720px) {
+/* Zweiter Fall, gemessen am 12.09.: der LAPTOP. Ein Browserfenster mit
+   1280x832 hatte -1 px, 1200x800 sogar -25 - der Ton-Knopf faellt unten
+   raus, genauso lautlos wie beim Handy. Nicht von den Textaenderungen
+   heute: mit dem Text vom 11.09. waren es -61 px, es war vorher schlimmer.
+   Warum gerade dort: die Ueberschrift nimmt sich 24svh, das sind bei 800 px
+   Hoehe schon 192 px, und die Schrift steht am Rechner auf ihrem groessten
+   Wert (23,2 px). Hoch UND breit geht gut, breit und flach nicht.
+   Gerechnet und nachgemessen: unterhalb von rund 833 px Hoehe reicht es bei
+   voller Schrift nicht mehr. Die Grenze steht auf 940 px, damit direkt
+   oberhalb davon noch gut 80 px Reserve bleiben statt eines Zufalls.
+   Die Handys bleiben aussen vor (min-width 900px): 360x800 hat bei voller
+   Schrift 110 px Luft, da gibt es nichts zu verkleinern. */
+@media (max-height: 720px), (min-width: 900px) and (max-height: 940px) {
   #hoeren .flz   { font-size: clamp(0.9rem, 2.2vw, 1.2rem); line-height: 1.45; }
   #hoeren .zeile { font-size: clamp(0.95rem, 2.4vw, 1.25rem); }
   /* Die Abstaende tragen zusammen 75 px - auf einem 640er Schirm ist das
@@ -1051,7 +1076,13 @@ var TEXTE = {
   de: {
     titel: 'Feeling like a plant. 26. September, Amadeus, Oldenburg',
     navWurzeln: 'Intro', navProgramm: 'Programm',
-    navHoeren: 'Hören', navWannwo: 'Wann & Wo', navBisdahin: 'Bis dahin',
+    /* Seit 12.09. heisst der Punkt wie das Geraet, nicht wie die Taetigkeit
+       (Felix). Die Leiste setzt ohnehin alles in Grossbuchstaben - hier steht
+       "Plynthi", weil das die Schreibweise ist, die Felix im Fliesstext nutzt,
+       und weil Vorleseprogramme genau diesen String vorlesen.
+       Der Anker #hoeren bleibt: der steht in Links, im Menue und im Verlauf,
+       und ein Name im Code ist nichts, was auf dem Schirm erscheint. */
+    navHoeren: 'Plynthi', navWannwo: 'Wann & Wo', navBisdahin: 'Bis dahin',
     k2u: 'INTRO',
     /* Hervorhebungen stehen als Paare [fett, Text] da, nicht als HTML - so
        bleibt es beim textContent wie im Rest der Seite. */
@@ -1088,7 +1119,7 @@ var TEXTE = {
   en: {
     titel: 'Feeling like a plant. 26 September, Amadeus, Oldenburg',
     navWurzeln: 'Intro', navProgramm: 'Programme',
-    navHoeren: 'Listen', navWannwo: 'When & where', navBisdahin: 'Until then',
+    navHoeren: 'Plynthi', navWannwo: 'When & where', navBisdahin: 'Until then',
     k2u: 'INTRO',
     k2mitte: [[0, 'Plants live in '], [1, 'communities'],
               [0, '. Below ground they are '], [1, 'connected'],
